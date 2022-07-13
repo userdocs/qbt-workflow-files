@@ -140,7 +140,7 @@ jobs:
           libtorrent_1_2_version="${libtorrent_1_2_github_tag/v}"
 
           printf "%s\n" "| libtorrent 1.2 | ${libtorrent_1_2_version} | ${libtorrent_1_2_url} |" >> body.md
-          printf "${libtorrent_1_2_github_tag//\./}" >> tag_name.txt
+          printf "${libtorrent_1_2_version//\./}" >> tag_name.txt
 
           git clone --single-branch --branch "${libtorrent_1_2_github_tag}" --shallow-submodules --recurse-submodules --depth 1 "${libtorrent_1_2_url}" libtorrent_${libtorrent_1_2_version}
           tar cJf libtorrent.${libtorrent_1_2_version}.tar.xz libtorrent_${libtorrent_1_2_version}
@@ -152,7 +152,7 @@ jobs:
           libtorrent_2_0_version="${libtorrent_2_0_github_tag/v}"
 
           printf "%s\n" "| libtorrent 1.2 | ${libtorrent_2_0_version} | ${libtorrent_2_0_url} |" >> body.md
-          printf "${libtorrent_2_0_github_tag//\./}" >> tag_name.txt
+          printf "${libtorrent_2_0_version//\./}" >> tag_name.txt
 
           git clone --single-branch --branch "${libtorrent_2_0_github_tag}" --shallow-submodules --recurse-submodules --depth 1 "${libtorrent_2_0_url}" libtorrent_${libtorrent_2_0_version}
           tar cJf libtorrent.${libtorrent_2_0_version}.tar.xz libtorrent_${libtorrent_2_0_version}
