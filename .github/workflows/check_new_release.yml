@@ -46,7 +46,7 @@ jobs:
           repo: userdocs/qbt-workflow-files
           token: ${{ secrets.MYTOKEN }}
           ref: ${{ github.event.pull_request.head.ref }}
-          inputs: '{"sha": "${{ github.sha }}"}'
+          inputs: '{ "sha": "${{ github.sha }}" }'
 
       - name: Wait for qbt download and release to finish
         if: env.trigger_workflow == 'yes'
