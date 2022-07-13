@@ -2,8 +2,8 @@ name: qbt download and release reusable files for workflows
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "0 */6 * * *"
+  repository_dispatch:
+    types: [check-for-new-releases]
 
 jobs:
   build:
