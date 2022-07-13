@@ -52,7 +52,7 @@ jobs:
         with:
           check-name: "qbt download and release reusable files for workflows"
           repo-token: ${{ secrets.MYTOKEN }}
-          wait-interval: 10
+          wait-interval: 20
           allowed-conclusions: success
 
       - name: Download updated qtb static dependencies
