@@ -2,6 +2,8 @@ name: check for new releases
 
 on:
   workflow_dispatch:
+  repository_dispatch:
+    types: [check-for-new-releases]
 
 jobs:
   check_release:
@@ -38,15 +40,14 @@ jobs:
             fi
           done
 
-      - name: Download updated qtb static dependencies
+      - name: Repository Dispatch
         if: env.trigger_workflow == 'yes'
-        uses: benc-uk/workflow-dispatch@v1
+        uses: peter-evans/repository-dispatch@v1
         with:
-          workflow: qbt download and release reusable files for workflows
-          repo: userdocs/qbt-workflow-files
           token: ${{ secrets.MYTOKEN }}
-          ref: ${{ github.event.pull_request.head.ref }}
-          inputs: '{ "sha": "${{ github.sha }}" }'
+          repository: ${{ github.repository }}
+          event-type: check-for-new-releases
+          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
 
       - name: Wait for qbt download and release to finish
         if: env.trigger_workflow == 'yes'
