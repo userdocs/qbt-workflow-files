@@ -186,6 +186,8 @@ jobs:
 
           github_release_tag="${bison_version/\./}${gawk_version/\./}${glibc_2_31_url/\./}${glibc_2_35_url/\./}${zlib_version/\./}${iconv_version/\./}${icu_github_tag/\./}${double_conversion_github_tag/\./}${openssl_github_tag/\./}${boost_version/\./}${libtorrent_1_2_github_tag/\./}${libtorrent_2_0_github_tag/\./}${qt6_github_tag/\./}${qbittorrent_github_tag/\./}"
 
+          printf '%s\n' "${github_release_tag}"
+          
           echo "github_release_tag=$github_release_tag" >> $GITHUB_ENV
 
       - name: Host - "Create release - tag - assets"
