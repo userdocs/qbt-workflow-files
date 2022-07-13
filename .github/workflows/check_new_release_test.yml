@@ -1,0 +1,145 @@
+name: check for new releases qbt_static_test
+
+on:
+  workflow_dispatch:
+
+jobs:
+  skip_duplicate_job:
+    # continue-on-error: true # Uncomment once integration is finished
+    runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@v4
+        with:
+          concurrent_skipping: "always"
+          cancel_others: "false"
+          skip_after_successful_duplicate: false
+          do_not_skip: ""
+
+  check_release:
+    needs: skip_duplicate_job
+    if: ${{ needs.skip_duplicate_job.outputs.should_skip != 'true' }}
+    runs-on: ubuntu-latest
+    name: "Check for latest releases or tags"
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: bootstrap array values to files
+        run: |
+          cat > "current_github_tag.sh" <<- current_github_tag
+            declare -A current_github_tag
+            current_github_tag[qbittorrent]="4.4.4.4"
+            # current_github_tag[qbittorrent]="$(git ls-remote -q -t --refs "https://github.com/qbittorrent/qBittorrent.git" | awk '{sub("refs/tags/release-", "");sub("(.*)(-[^0-9].*|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+            current_github_tag[qt5]="$(git ls-remote -q -t --refs https://github.com/qt/qtbase.git | awk '/v5(.*)-lts-lgpl/{sub("refs/tags/v", ""); print $2 }' | sed 's/-lts-lgpl//g' | awk '!/^$/' | sort -rV | head -n1)"
+            current_github_tag[qt6]="$(git ls-remote -q -t --refs "https://github.com/qt/qtbase.git" | awk '/v6/{sub("refs/tags/v", ""); sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+            current_github_tag[libtorrent_1_2]="$(git ls-remote -q -t --refs "https://github.com/arvidn/libtorrent.git" | awk '/\/v1/{sub("refs/tags/v", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+            current_github_tag[libtorrent_2_0]="$(git ls-remote -q -t --refs "https://github.com/arvidn/libtorrent.git" | awk '/\/v2/{sub("refs/tags/v", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+            current_github_tag[boost]="$(git ls-remote -q -t --refs https://github.com/boostorg/boost.git | awk '{sub("refs/tags/boost-", "");sub("(.*)(rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+            current_github_tag[openssl]="$(git ls-remote -q -t --refs "https://github.com/openssl/openssl.git" | awk '/openssl/{sub("refs/tags/openssl-", "");sub("(.*)(v6|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+          current_github_tag
+
+          cat > "current_workflow_version.sh" <<- current_workflow_version
+            declare -A current_workflow_version
+            current_workflow_version[qbittorrent]="$(curl -sL https://api.github.com/repos/userdocs/qbt-workflow-files/releases/latest | jq -r '.body' | grep '|.*qbittorrent.*|' | awk '{ print $4 }')"
+            current_workflow_version[qt5]="$(curl -sL https://api.github.com/repos/userdocs/qbt-workflow-files/releases/latest | jq -r '.body' | grep '|.*qt5base.*|' | awk '{ print $4 }')"
+            current_workflow_version[qt6]="$(curl -sL https://api.github.com/repos/userdocs/qbt-workflow-files/releases/latest | jq -r '.body' | grep '|.*qt6base.*|' | awk '{ print $4 }')"
+            current_workflow_version[libtorrent_1_2]="$(curl -sL https://api.github.com/repos/userdocs/qbt-workflow-files/releases/latest | jq -r '.body' | grep '|.*libtorrent_1_2.*|' | awk '{ print $4 }')"
+            current_workflow_version[libtorrent_2_0]="$(curl -sL https://api.github.com/repos/userdocs/qbt-workflow-files/releases/latest | jq -r '.body' | grep '|.*libtorrent_2_0.*|' | awk '{ print $4 }')"
+            current_workflow_version[boost]="$(curl -sL https://api.github.com/repos/userdocs/qbt-workflow-files/releases/latest | jq -r '.body' | grep '|.*boost.*|' | awk '{ print $4 }')"
+            current_workflow_version[openssl]="$(curl -sL https://api.github.com/repos/userdocs/qbt-workflow-files/releases/latest | jq -r '.body' | grep '|.*openssl.*|' | awk '{ print $4 }')"
+          current_workflow_version
+
+          cat > "current_build_version.sh" <<- current_build_version
+            declare -A current_build_version
+            current_build_version[qbittorrent]="$(curl -sL https://api.github.com/repos/userdocs/qbittorrent-nox-static/releases/latest | jq -r '.body' | grep '|.*Qbittorrent.*|' | awk '{ print $4 }')"
+            current_build_version[qt5]="$(curl -sL https://api.github.com/repos/userdocs/qbittorrent-nox-static/releases/latest | jq -r '.body' | grep '|.*Qt5.*|' | awk '{ print $4 }')"
+            current_build_version[qt6]="$(curl -sL https://api.github.com/repos/userdocs/qbittorrent-nox-static/releases/latest | jq -r '.body' | grep '|.*Qt6.*|' | awk '{ print $4 }')"
+            current_build_version[libtorrent_1_2]="$(curl -sL https://api.github.com/repos/userdocs/qbittorrent-nox-static/releases | jq -r '.[1].body' | grep '|.*Libtorrent.*|' | awk '{ print $4 }')"
+            current_build_version[libtorrent_2_0]="$(curl -sL https://api.github.com/repos/userdocs/qbittorrent-nox-static/releases/latest | jq -r '.body' | grep '|.*Libtorrent.*|' | awk '{ print $4 }')"
+            current_build_version[boost]="$(curl -sL https://api.github.com/repos/userdocs/qbittorrent-nox-static/releases/latest | jq -r '.body' | grep '|.*Boost.*|' | awk '{ print $4 }')"
+            current_build_version[openssl]="$(curl -sL https://api.github.com/repos/userdocs/qbittorrent-nox-static/releases/latest | jq -r '.body' | grep '|.*OpenSSL.*|' | awk '{ print $4 }')"
+          current_build_version
+
+      - name: Test values - latest release vs workflow files
+        run: |
+          source current_github_tag.sh
+          source current_workflow_version.sh
+          for iray in "${!current_github_tag[@]}"; do
+            if [[ "${current_github_tag[$iray]//\./}" -gt "${current_workflow_version[$iray]//\./}" ]]; then
+              printf "%-14s latest:%-10s qbt-static-current:%-10s %s\n" "$iray" "${current_github_tag[$iray]}" "${current_workflow_version[$iray]}" "< New version available - workflow will be triggered"
+              echo "trigger_files_workflow=yes" >> $GITHUB_ENV
+            else
+              printf "%-14s latest:%-10s qbt-static-current:%-10s\n" "$iray" "${current_github_tag[$iray]}" "${current_workflow_version[$iray]}"
+            fi
+          done
+
+      - name: trigger workflow - qbt download and release reusable files for workflows
+        if: env.trigger_files_workflow == 'yes'
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: "qbt download and release reusable files for workflows"
+          repo: "userdocs/qbt-workflow-files"
+          token: ${{ secrets.MYTOKEN }}
+
+      - name: Await local workflow - qbt download and release reusable files for workflows
+        if: env.trigger_files_workflow == 'yes'
+        uses: codex-/await-local-workflow-run@v1
+        with:
+          token: ${{ secrets.MYTOKEN }}
+          workflow: "files_download_and_release.yml"
+          timeout_mins: 20
+          poll_interval_ms: 10000
+
+      - name: re-bootstrap upated current_workflow_version array values to file
+        run: |
+          cat > "current_workflow_version.sh" <<- current_workflow_version
+            declare -A current_workflow_version
+            current_workflow_version[qbittorrent]="4.4.4.4"
+            # current_workflow_version[qbittorrent]="$(curl -sL https://api.github.com/repos/userdocs/qbt-workflow-files/releases/latest | jq -r '.body' | grep '|.*qbittorrent.*|' | awk '{ print $4 }')"
+            current_workflow_version[qt5]="$(curl -sL https://api.github.com/repos/userdocs/qbt-workflow-files/releases/latest | jq -r '.body' | grep '|.*qt5base.*|' | awk '{ print $4 }')"
+            current_workflow_version[qt6]="$(curl -sL https://api.github.com/repos/userdocs/qbt-workflow-files/releases/latest | jq -r '.body' | grep '|.*qt6base.*|' | awk '{ print $4 }')"
+            current_workflow_version[libtorrent_1_2]="$(curl -sL https://api.github.com/repos/userdocs/qbt-workflow-files/releases/latest | jq -r '.body' | grep '|.*libtorrent_1_2.*|' | awk '{ print $4 }')"
+            current_workflow_version[libtorrent_2_0]="$(curl -sL https://api.github.com/repos/userdocs/qbt-workflow-files/releases/latest | jq -r '.body' | grep '|.*libtorrent_2_0.*|' | awk '{ print $4 }')"
+            current_workflow_version[boost]="$(curl -sL https://api.github.com/repos/userdocs/qbt-workflow-files/releases/latest | jq -r '.body' | grep '|.*boost.*|' | awk '{ print $4 }')"
+            current_workflow_version[openssl]="$(curl -sL https://api.github.com/repos/userdocs/qbt-workflow-files/releases/latest | jq -r '.body' | grep '|.*openssl.*|' | awk '{ print $4 }')"
+          current_workflow_version
+
+      - name: Test values - workflow files vs current build
+        run: |
+          source current_workflow_version.sh
+          source current_build_version.sh
+          for iray in "${!current_workflow_version[@]}"; do
+            if [[ "${current_workflow_version[$iray]//\./}" -gt "${current_build_version[$iray]//\./}" ]]; then
+              printf "%-14s latest:%-10s qbt-static-current:%-10s %s\n" "$iray" "${current_workflow_version[$iray]}" "${current_build_version[$iray]}" "< New version available - workflow will be triggered"
+              echo "trigger_build_workflow=yes" >> $GITHUB_ENV
+            else
+              printf "%-14s latest:%-10s qbt-static-current:%-10s\n" "$iray" "${current_workflow_version[$iray]}" "${current_build_version[$iray]}"
+            fi
+          done
+
+      - name: Dispatch an action and get the run ID
+        if: env.trigger_build_workflow == 'yes'
+        uses: codex-/return-dispatch@v1
+        id: return_dispatch
+        with:
+          token: ${{ secrets.MYTOKEN }}
+          ref: main
+          repo: qbt_static_test
+          owner: userdocs
+          workflow: matrix_multi_build_and_release_qbt_workflow_files.yml
+          workflow_timeout_seconds: 300
+
+      - name: Await Run ID ${{ steps.return_dispatch.outputs.run_id }}
+        if: env.trigger_build_workflow == 'yes'
+        uses: Codex-/await-remote-run@v1.0.0
+        with:
+          token: ${{ secrets.MYTOKEN }}
+          repo: qbt_static_test
+          owner: userdocs
+          run_id: ${{ steps.return_dispatch.outputs.run_id }}
+          run_timeout_seconds: 7200
+          poll_interval_ms: 10000
