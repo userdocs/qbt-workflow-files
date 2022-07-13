@@ -174,14 +174,15 @@ jobs:
 
       - name: Set tag via date
         run: |
-          ${zlib_version/.zlib-ng}
-          ${double_conversion_github_tag/v}
-          ${openssl_github_tag#openssl-}
-          ${libtorrent_1_2_github_tag/v}
-          ${libtorrent_2_0_github_tag/v}
-          ${qt5_github_tag/v}
-          ${qt6_github_tag/v}
-          ${qbittorrent_github_tag/release-} 
+          zlib_version="${zlib_version/.zlib-ng}"
+          double_conversion_github_tag="${double_conversion_github_tag/v}"
+          openssl_github_tag="${openssl_github_tag#openssl-}"
+          libtorrent_1_2_github_tag="${libtorrent_1_2_github_tag/v}"
+          libtorrent_1_2_github_tag="${libtorrent_1_2_github_tag/v}"
+          libtorrent_2_0_github_tag="${libtorrent_2_0_github_tag/v}"
+          qt5_github_tag="${qt5_github_tag/v}"
+          qt5_github_tag="${qt6_github_tag/v}"
+          qbittorrent_github_tag="${qbittorrent_github_tag/release-}"
 
           github_release_tag="${bison_version/\./}${gawk_version/\./}${glibc_2_31_url/\./}${glibc_2_35_url/\./}${zlib_version/\./}${iconv_version/\./}${icu_github_tag/\./}${double_conversion_github_tag/\./}${openssl_github_tag/\./}${boost_version/\./}${libtorrent_1_2_github_tag/\./}${libtorrent_2_0_github_tag/\./}${qt6_github_tag/\./}${qbittorrent_github_tag/\./}"
 
