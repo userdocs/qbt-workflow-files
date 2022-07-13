@@ -2,8 +2,6 @@ name: check for new releases
 
 on:
   workflow_dispatch:
-  repository_dispatch:
-    types: [check-for-new-releases]
 
 jobs:
   check_release:
