@@ -45,6 +45,7 @@ jobs:
           workflow: qbt download and release reusable files for workflows
           repo: userdocs/qbt-workflow-files
           token: ${{ secrets.MYTOKEN }}
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - name: Wait for qbt download and release to finish
         if: env.trigger_workflow == 'yes'
