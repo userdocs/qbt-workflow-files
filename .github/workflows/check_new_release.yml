@@ -50,8 +50,9 @@ jobs:
         if: env.trigger_workflow == 'yes'
         uses: lewagon/wait-on-check-action@v1.1.2
         with:
-          running-workflow-name: "qbt download and release reusable files for workflows"
+          ref: ${{ github.sha }}
           repo-token: ${{ secrets.MYTOKEN }}
+          running-workflow-name: "qbt download and release reusable files for workflows"
           wait-interval: 10
           allowed-conclusions: success
 
