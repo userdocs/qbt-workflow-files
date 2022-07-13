@@ -48,7 +48,7 @@ jobs:
 
       - name: Wait for qbt download and release to finish
         if: env.trigger_workflow == 'yes'
-        uses: lewagon/wait-on-check-action@v1.0.0
+        uses: lewagon/wait-on-check-action@v1.1.2
         with:
           ref: ${{ github.ref }}
           running-workflow-name: "qbt download and release reusable files for workflows"
