@@ -38,25 +38,22 @@ jobs:
             fi
           done
 
-      - name: Repository Dispatch
+      - name: Download updated qtb static dependencies
         if: env.trigger_workflow == 'yes'
-        uses: peter-evans/repository-dispatch@v1
+        uses: benc-uk/workflow-dispatch@v1
         with:
+          workflow: qbt download and release reusable files for workflows
+          repo: userdocs/qbt-workflow-files
           token: ${{ secrets.MYTOKEN }}
-          repository: ${{ github.repository }}
-          event-type: check-for-new-releases
-          client-payload: '{"sha": "${{ github.event.client_payload.sha }}"}'
 
-      - name: Wait for qbt download and release to finish
-        if: env.trigger_workflow == 'yes'
-        uses: lewagon/wait-on-check-action@v1.1.2
+      - name: Await the completion of qbt download and release reusable files for workflows
+        uses: codex-/await-local-workflow-run@v1
         with:
-          ref: ${{ github.event.client_payload.sha }}
-          repo-token: ${{ secrets.MYTOKEN }}
-          check-name: "qbt download and release reusable files for workflows"
-          running-workflow-name: "check for new releases"
-          wait-interval: 10
-          allowed-conclusions: success
+          token: ${{ github.MYTOKEN }} # The standard action GitHub token should be enough to poll the local workflows.
+          workflow: files_download_and_release.yml # filename of the workflow you wish to await
+          check_name: qbt download and release reusable files for workflows # Optional
+          timeout_mins: 5 # Default: 15
+          poll_interval_ms: 10000 # Default: 15000
 
       - name: Download updated qtb static dependencies
         if: env.trigger_workflow == 'yes'
