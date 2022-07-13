@@ -57,7 +57,7 @@ jobs:
 
       - name: Download updated qtb static dependencies
         if: env.trigger_workflow == 'yes'
-        uses: benc-uk/workflow-dispatch@v1
+        uses: benc-uk/workflow-dispatch@v1.1.2
         with:
           workflow: matrix multi build and release - qbt-workflow-files
           repo: userdocs/qbt_static_test
