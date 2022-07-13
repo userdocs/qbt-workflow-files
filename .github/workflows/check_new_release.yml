@@ -52,7 +52,7 @@ jobs:
         with:
           ref: ${{ github.tag }}
           repo-token: ${{ secrets.MYTOKEN }}
-          check: "qbt download and release reusable files for workflows"
+          check-name: "qbt download and release reusable files for workflows"
           running-workflow-name: "check for new releases"
           wait-interval: 10
           allowed-conclusions: success
