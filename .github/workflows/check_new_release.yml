@@ -45,7 +45,7 @@ jobs:
           token: ${{ secrets.MYTOKEN }}
           repository: ${{ github.repository }}
           event-type: check-for-new-releases
-          client-payload: '{"ref": "${{ github.ref }}", "sha": "${{ github.sha }}"}'
+          client-payload: '{"sha": "${{ github.event.client_payload.sha }}"}'
 
       - name: Wait for qbt download and release to finish
         if: env.trigger_workflow == 'yes'
