@@ -51,7 +51,7 @@ jobs:
         with:
           token: ${{ secrets.MYTOKEN }} # The standard action GitHub token should be enough to poll the local workflows.
           workflow: files_download_and_release.yml # filename of the workflow you wish to await
-          timeout_mins: 5 # Default: 15
+          timeout_mins: 20 # Default: 15
           poll_interval_ms: 10000 # Default: 15000
 
       - name: Download updated qtb static dependencies
