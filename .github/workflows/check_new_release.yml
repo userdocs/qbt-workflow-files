@@ -16,7 +16,7 @@ jobs:
           declare -A current_github_tag
           declare -A current_build_version
 
-          current_github_tag[qbittorrent]="$(git ls-remote -q -t --refs "https://github.com/qbittorrent/qBittorrent.git" | awk '{sub("refs/tags/release-", "");sub("(.*)(-[^0-9].*|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+          current_github_tag[qbittorrent]="4.4.4.1"
           current_build_version[qbittorrent]="$(curl -sL https://api.github.com/repos/userdocs/qbittorrent-nox-static/releases/latest | jq -r '.body' | grep '|.*Qbittorrent.*|' | awk '{ print $4 }')"
           current_github_tag[qt5]="$(git ls-remote -q -t --refs https://github.com/qt/qtbase.git | awk '/v5(.*)-lts-lgpl/{sub("refs/tags/v", ""); print $2 }' | sed 's/-lts-lgpl//g' | awk '!/^$/' | sort -rV | head -n1)"
           current_build_version[qt5]="$(curl -sL https://api.github.com/repos/userdocs/qbittorrent-nox-static/releases/latest | jq -r '.body' | grep '|.*Qt5.*|' | awk '{ print $4 }')"
