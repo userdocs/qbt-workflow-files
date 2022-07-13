@@ -35,7 +35,7 @@ jobs:
           gawk_version="$(grep -Eo 'gawk-([0-9]{1,3}[.]?)([0-9]{1,3}[.]?)([0-9]{1,3}?)\.tar.xz' <(curl -sL https://ftp.gnu.org/gnu/gawk/) | sort -V | tail -1)"
           gawk_version=${gawk_version/gawk-} gawk_version=${gawk_version/.tar.xz}
 
-          printf "%s\n" "| gawk | $gawk_version | $gawk_url | " >> body.md
+          printf "%s\n" "| gawk | ${gawk_version} | ${gawk_url} | " >> body.md
           curl -sL "$gawk_url" > gawk.tar.xz
 
       - name: glibc 2.31
@@ -173,7 +173,19 @@ jobs:
           tar cJf qbittorrent.tar.xz qbittorrent
 
       - name: Set tag via date
-        run: echo "github_release_tag=$(date +"%y%V")" >> $GITHUB_ENV
+        run: |
+          ${zlib_version/.zlib-ng}
+          ${double_conversion_github_tag/v}
+          ${openssl_github_tag#openssl-}
+          ${libtorrent_1_2_github_tag/v}
+          ${libtorrent_2_0_github_tag/v}
+          ${qt5_github_tag/v}
+          ${qt6_github_tag/v}
+          ${qbittorrent_github_tag/release-} 
+
+          github_release_tag="${bison_version/\./}${gawk_version/\./}${glibc_2_31_url/\./}${glibc_2_35_url/\./}${zlib_version/\./}${iconv_version/\./}${icu_github_tag/\./}${double_conversion_github_tag/\./}${openssl_github_tag/\./}${boost_version/\./}${libtorrent_1_2_github_tag/\./}${libtorrent_2_0_github_tag/\./}${qt6_github_tag/\./}${qbittorrent_github_tag/\./}"
+
+          echo "github_release_tag=$github_release_tag" >> $GITHUB_ENV
 
       - name: Host - "Create release - tag - assets"
         uses: ncipollo/release-action@v1.10.0
