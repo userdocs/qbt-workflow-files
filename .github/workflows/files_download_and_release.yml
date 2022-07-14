@@ -121,7 +121,6 @@ jobs:
           git clone --single-branch --branch "${openssl_github_tag}" --shallow-submodules --recurse-submodules --depth 1 "${openssl_url}" openssl
           tar cJf openssl.tar.xz openssl
 
-
       - name: boost
         run: |
           boost_version="$(git ls-remote -q -t --refs https://github.com/boostorg/boost.git | awk '{sub("refs/tags/boost-", "");sub("(.*)(rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
@@ -201,8 +200,23 @@ jobs:
           git clone --single-branch --branch "${qbittorrent_github_tag}" --shallow-submodules --recurse-submodules --depth 1 "${qbittorrent_url}" qbittorrent
           tar cJf qbittorrent.tar.xz qbittorrent
 
+      - name: Create current_workflow_version array
+        run: |
+          cat >> "body.md" <<- current_workflow_version
+            <!--
+            declare -A current_build_version
+            current_workflow_version[qbittorrent]="${qbittorrent_version//\./}"
+            current_workflow_version[qt5]="${qt5_version}"
+            current_workflow_version[qt6]="${qt6_version}"
+            current_workflow_version[libtorrent_1_2]="${libtorrent_1_2_version}"
+            current_workflow_version[libtorrent_2_0]="${libtorrent_2_0_version})"
+            current_workflow_version[boost]="${boost_version}"
+            current_workflow_version[openssl]="${openssl_version}"
+            -->
+          current_workflow_version
+
       - name: Set tag via tag_name.txt
-        run:  echo "github_release_tag=$(cat tag_name.txt)" >> $GITHUB_ENV
+        run: echo "github_release_tag=$(cat tag_name.txt)" >> $GITHUB_ENV
 
       - name: Host - "Create release - tag - assets"
         uses: ncipollo/release-action@v1.10.0
