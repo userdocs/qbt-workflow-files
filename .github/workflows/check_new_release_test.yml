@@ -135,7 +135,7 @@ jobs:
 
       - name: Await Run ID ${{ steps.return_dispatch.outputs.run_id }}
         if: env.trigger_build_workflow == 'yes'
-        uses: Codex-/await-remote-run@v1.0.0
+        uses: Codex-/await-remote-run@v1.4.0
         with:
           token: ${{ secrets.MYTOKEN }}
           repo: qbt_static_test
