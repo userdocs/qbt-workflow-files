@@ -216,4 +216,4 @@ Using the release body to contain html commented associative bash array data for
 
 Using a `dependency-version.json` uploaded as a release asset we can access this file without the API and parse it with `jq`, creating the arrays that way.
 
-Being able to comparaitvelt process this data across mutlple Allowing me to trigger workflows locally or remotely and automated the process of updating the dependencies and applications I build using them.
+Being able to comparatively process this data across multiple repos allows me to trigger workflows locally or remotely and automate the process of updating the dependencies and applications I build using them.
