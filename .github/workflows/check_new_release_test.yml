@@ -54,6 +54,7 @@ jobs:
         run: |
           source current_github_tag.sh
           source current_workflow_version.sh
+          current_workflow_version[qbittorrent]="4.4.4.4"
           for iray in "${!current_github_tag[@]}"; do
             if [[ "${current_github_tag[$iray]//\./}" -gt "${current_workflow_version[$iray]//\./}" ]]; then
               printf "%-14s latest:%-10s qbt-workflow-files:%-10s %s\n" "$iray" "${current_github_tag[$iray]}" "${current_workflow_version[$iray]}" "< New version available - workflow will be triggered"
