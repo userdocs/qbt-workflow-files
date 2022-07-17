@@ -89,6 +89,8 @@ The only solution involves keeping track of the dependency versions somewhere on
 
     https://github.com/userdocs/qbt-workflow-files/releases/latest/download/dependency-version.json
 
+    It looks like this:
+
     ```json
     {
     "qbittorrent": "4.4.3.1",
