@@ -85,35 +85,47 @@ The only solution involves keeping track of the dependency versions somewhere on
 
 - used method -  A file published as a release asset `dependency-version.json`. This is another valid option I have implemented.
 
-  The latest release for `qbt-workflow-files` has a special `dependency-version.json` found here
+    The latest release for `qbt-workflow-files` has a special `dependency-version.json` found here
 
-  https://github.com/userdocs/qbt-workflow-files/releases/latest/download/dependency-version.json
+    https://github.com/userdocs/qbt-workflow-files/releases/latest/download/dependency-version.json
 
-  When using that URL with jq we can see parse the json in bash
+    ```json
+    {
+    "qbittorrent": "4.4.3.1",
+    "qt5": "5.15.5",
+    "qt6": "6.3.1",
+    "libtorrent_1_2": "1.2.16",
+    "libtorrent_2_0": "2.0.6",
+    "boost": "1.79.0",
+    "openssl": "3.0.5"
+    }
+    ```
 
-  ```bash
-  curl -sL https://github.com/userdocs/qbt-workflow-files/releases/latest/download/dependency-version.json | jq
-  ```
+    When using that URL with jq we can see parse the json in bash
 
-  Using these commands to first check it does not exist and then to create the associative array we need.
+    ```bash
+    curl -sL https://github.com/userdocs/qbt-workflow-files/releases/latest/download/dependency-version.json | jq
+    ```
 
-  ```bash
-  declare -p current_workflow_version # check the array
-  declare -A current_workflow_version #  create the array
-  ```
+    Using these commands to first check it does not exist and then to create the associative array we need.
 
-  We can use this command to populate the array
+    ```bash
+    declare -p current_workflow_version # check the array
+    declare -A current_workflow_version #  create the array
+    ```
 
-  ```bash
-  # credits to geirha in #bash libera.chat
-  eval "$(curl -sL "https://github.com/userdocs/qbt-workflow-files/releases/latest/download/dependency-version.json" | jq -r 'to_entries[]|@sh"current_workflow_version[\(.key)]=\(.value)"')"
-  ```
+    We can use this command to populate the array
 
-  Now check it again
+    ```bash
+    # credits to geirha in #bash libera.chat
+    eval "$(curl -sL "https://github.com/userdocs/qbt-workflow-files/releases/latest/download/dependency-version.json" | jq -r 'to_entries[]|@sh"current_workflow_version[\(.key)]=\(.value)"')"
+    ```
 
-  ```bash
-  declare -p current_workflow_version # check the array
-  ```
+    Now check it again
+
+    ```bash
+    declare -p current_workflow_version # check the array
+    ```
 
 - used method - The text body of release information itself because my workflows was already set up to do this and it only required a small adjustment of the workflow.
 
