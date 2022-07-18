@@ -24,6 +24,9 @@ jobs:
     if: ${{ needs.skip_duplicate_job.outputs.should_skip != 'true' }}
     runs-on: ubuntu-latest
     name: "Check for latest releases or tags"
+    env:
+      trigger_files_workflow: "no"
+      trigger_build_workflow: "no"
 
     steps:
       - uses: actions/checkout@v3
