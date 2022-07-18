@@ -119,3 +119,7 @@ jobs:
           run_id: ${{ steps.return_dispatch.outputs.run_id }}
           run_timeout_seconds: 7200
           poll_interval_ms: 10000
+
+      - name: Pushover notification
+        run: |
+          curl -4s -d message="Run completed" -d title="check for new releases qbittorrent-nox-static" -d token="${{ secrets.PUSHOVER_API_TOKEN }}" -d user="${{ secrets.PUSHOVER_USER_KEY }}" 'https://api.pushover.net/1/messages.json'
