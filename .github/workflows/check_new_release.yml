@@ -121,5 +121,12 @@ jobs:
           poll_interval_ms: 10000
 
       - name: Pushover notification
+        if: success ()
         run: |
-          curl -4s -d message="Run completed" -d title="check for new releases qbittorrent-nox-static" -d token="${{ secrets.PUSHOVER_API_TOKEN }}" -d user="${{ secrets.PUSHOVER_USER_KEY }}" 'https://api.pushover.net/1/messages.json'
+          if [[ ${{ env.trigger_files_workflow }} == 'yes' ]]; then
+            curl -4s -d message="Run completed" -d title="Workflow files updated" -d token="${{ secrets.PUSHOVER_API_TOKEN }}" -d user="${{ secrets.PUSHOVER_USER_KEY }}" 'https://api.pushover.net/1/messages.json'
+          fi
+
+          if [[ ${{  env.trigger_build_workflow }} == 'yes' ]]; then
+            curl -4s -d message="Run completed" -d title="qbt static rebuilt" -d token="${{ secrets.PUSHOVER_API_TOKEN }}" -d user="${{ secrets.PUSHOVER_USER_KEY }}" 'https://api.pushover.net/1/messages.json'
+          fi
