@@ -83,6 +83,10 @@ jobs:
           timeout_mins: 20
           poll_interval_ms: 10000
 
+      - name: Pushover notification workflows
+        if: success () && env.trigger_files_workflow == 'yes'
+        run: curl -4s -d message="New dependency versions have been released" -d title="qbt workflow files updated" -d token="${{ secrets.PUSHOVER_API_TOKEN }}" -d user="${{ secrets.PUSHOVER_USER_KEY }}" 'https://api.pushover.net/1/messages.json'
+
       - name: re-bootstrap updated current_workflow_version array values to file
         run: curl -sL https://api.github.com/repos/userdocs/qbt-workflow-files/releases/latest | jq -r '.body' | awk '/<!--/,/-->/{sub("<!--", "");sub("-->", "");sub("\r", ""); print $0 }' > current_workflow_version.sh
 
@@ -123,13 +127,6 @@ jobs:
           run_timeout_seconds: 7200
           poll_interval_ms: 10000
 
-      - name: Pushover notification
-        if: success ()
-        run: |
-          if [[ ${{ env.trigger_files_workflow }} == 'yes' ]]; then
-            curl -4s -d message="Run completed" -d title="Workflow files updated" -d token="${{ secrets.PUSHOVER_API_TOKEN }}" -d user="${{ secrets.PUSHOVER_USER_KEY }}" 'https://api.pushover.net/1/messages.json'
-          fi
-
-          if [[ ${{  env.trigger_build_workflow }} == 'yes' ]]; then
-            curl -4s -d message="Run completed" -d title="qbt static rebuilt" -d token="${{ secrets.PUSHOVER_API_TOKEN }}" -d user="${{ secrets.PUSHOVER_USER_KEY }}" 'https://api.pushover.net/1/messages.json'
-          fi
+      - name: Pushover notification qbt static build
+        if: success () && env.trigger_build_workflow == 'yes'
+        run: curl -4s -d message="New dependency versions have been built" -d title="qbt static has been rebuilt" -d token="${{ secrets.PUSHOVER_API_TOKEN }}" -d user="${{ secrets.PUSHOVER_USER_KEY }}" 'https://api.pushover.net/1/messages.json'
