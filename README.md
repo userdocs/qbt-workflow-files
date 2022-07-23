@@ -19,8 +19,8 @@ It runs every 2 hours and only keeps the most current versions of the dependenci
 | :----------------: |
 |       bison        |
 |        gawk        |
-|       glibc        |
-|       glibc        |
+|    glibc  2.31     |
+|    glibc  2.35     |
 |        zlib        |
 |       iconv        |
 |        icu         |
