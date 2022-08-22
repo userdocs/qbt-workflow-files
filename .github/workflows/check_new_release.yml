@@ -53,7 +53,7 @@ jobs:
         run: |
           curl -sL https://api.github.com/repos/userdocs/qbittorrent-nox-static/releases/latest | jq -r '.body' | awk '/<!--/,/-->/{sub("<!--", "");sub("-->", "");sub("\r", ""); print $0 }' > current_build_version.sh
           source current_build_version.sh
-          curl -sL https://api.github.com/repos/userdocs/qbittorrent-nox-static/releases | jq -r 'first(.[] | select(.tag_name | contains ("release-'${current_build_version[qbittorrent]}_v1.2'")) | .body)' | awk '/^current_build_version\[libtorrent/{sub("\r", ""); print $0 }'  >> current_build_version.sh
+          curl -sL https://api.github.com/repos/userdocs/qbittorrent-nox-static/releases | jq -r 'first(.[] | select(.tag_name | contains ("release-'"${current_build_version[qbittorrent]}"'_v1.2")) | .body)' | awk '/^current_build_version\[libtorrent/{sub("\r", ""); print $0 }'  >> current_build_version.sh
 
       - name: Test values - latest release vs workflow files
         run: |
