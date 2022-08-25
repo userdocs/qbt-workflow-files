@@ -106,10 +106,10 @@ jobs:
             fi
           done
 
-      - name: Dispatch an action and get the run ID
+      - name: Dispatch workflow test run
         if: env.trigger_build_workflow == 'yes'
         uses: codex-/return-dispatch@v1
-        id: return_dispatch
+        id: return_dispatch_test
         with:
           token: ${{ secrets.MYTOKEN }}
           ref: main
@@ -117,19 +117,45 @@ jobs:
           owner: userdocs
           workflow: matrix_multi_build_and_release_qbt_workflow_files.yml
           workflow_timeout_seconds: 300
-          workflow_inputs: '{ "test_run": "yes" }'
+          workflow_inputs: '{ "distinct_id": "workflow_build_test", "test_run": "yes" }'
 
-      - name: Await Run ID ${{ steps.return_dispatch.outputs.run_id }}
+      - name: Await Run ID ${{ steps.return_dispatch_test.outputs.run_id }}
         if: env.trigger_build_workflow == 'yes'
         uses: Codex-/await-remote-run@v1.4.1
+        id: await_remote_test_run
         with:
           token: ${{ secrets.MYTOKEN }}
           repo: qbt_static_test
           owner: userdocs
-          run_id: ${{ steps.return_dispatch.outputs.run_id }}
+          run_id: ${{ steps.return_dispatch_test.outputs.run_id }}
+          run_timeout_seconds: 7200
+          poll_interval_ms: 10000
+
+      - name: Dispatch an action and get the run ID
+        if: steps.await_remote_test_run.outcome == 'success' && env.trigger_build_workflow == 'yes'
+        uses: codex-/return-dispatch@v1
+        id: return_dispatch_build
+        with:
+          token: ${{ secrets.MYTOKEN }}
+          ref: main
+          repo: qbt_static_test
+          owner: userdocs
+          workflow: matrix_multi_build_and_release_qbt_workflow_files.yml
+          workflow_timeout_seconds: 300
+          workflow_inputs: '{ "distinct_id": "workflow_build_run", "test_run": "no" }'
+
+      - name: Await Run ID ${{ steps.return_dispatch_build.outputs.run_id }}
+        if: env.trigger_build_workflow == 'yes'
+        uses: Codex-/await-remote-run@v1.4.1
+        id: await_remote_build_run
+        with:
+          token: ${{ secrets.MYTOKEN }}
+          repo: qbt_static_test
+          owner: userdocs
+          run_id: ${{ steps.return_dispatch_build.outputs.run_id }}
           run_timeout_seconds: 7200
           poll_interval_ms: 10000
 
       - name: Pushover notification qbt static build
-        if: success () && env.trigger_build_workflow == 'yes'
+        if: steps.await_remote_build_run.outcome == 'success' && env.trigger_build_workflow == 'yes'
         run: curl -4s -d message="New dependency versions have been built" -d title="qbt static has been rebuilt" -d token="${{ secrets.PUSHOVER_API_TOKEN }}" -d user="${{ secrets.PUSHOVER_USER_KEY }}" 'https://api.pushover.net/1/messages.json'
