@@ -115,8 +115,8 @@ jobs:
           ref: main
           repo: qbt_static_test
           owner: userdocs
-          workflow_inputs: { "some_input": "dipout" } # Optional
           workflow: matrix_multi_build_and_release_qbt_workflow_files.yml
+          workflow_inputs: { "distinct_id": "dipout" } # Optional
           workflow_timeout_seconds: 300
 
       - name: Await Run ID ${{ steps.return_dispatch.outputs.run_id }}
