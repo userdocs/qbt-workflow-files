@@ -117,7 +117,7 @@ jobs:
           owner: userdocs
           workflow: matrix_multi_build_and_release_qbt_workflow_files.yml
           workflow_timeout_seconds: 300
-          workflow_inputs: '{ "test_run": "dipout" }'
+          workflow_inputs: '{ "test_run": "yes" }'
 
       - name: Await Run ID ${{ steps.return_dispatch.outputs.run_id }}
         if: env.trigger_build_workflow == 'yes'
