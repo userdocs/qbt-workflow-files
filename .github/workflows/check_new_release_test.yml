@@ -117,7 +117,7 @@ jobs:
           owner: userdocs
           workflow: matrix_multi_build_and_release_qbt_workflow_files.yml
           workflow_timeout_seconds: 300
-          workflow_inputs: '{ "distinct_id": "workflow_build_test" }'
+          workflow_inputs: '{ "distinct_id": "workflow_build_test", "test_run": "yes" }'
 
       - name: Await workflow test run ID ${{ steps.return_dispatch_test.outputs.run_id }}
         if: env.trigger_build_workflow == 'yes'
@@ -142,7 +142,7 @@ jobs:
           owner: userdocs
           workflow: matrix_multi_build_and_release_qbt_workflow_files.yml
           workflow_timeout_seconds: 300
-          workflow_inputs: '{ "distinct_id": "workflow_build_run" }'
+          workflow_inputs: '{ "distinct_id": "workflow_build_run", "test_run": "no" }'
 
       - name: Await workflow test run ID ${{ steps.return_dispatch_build.outputs.run_id }}
         if: env.trigger_build_workflow == 'yes'
