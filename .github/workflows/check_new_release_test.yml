@@ -106,10 +106,10 @@ jobs:
             fi
           done
 
-      - name: Dispatch workflow test run
+      - name: Dispatch an action and get the run ID
         if: env.trigger_build_workflow == 'yes'
         uses: codex-/return-dispatch@v1
-        id: return_dispatch_test
+        id: return_dispatch
         with:
           token: ${{ secrets.MYTOKEN }}
           ref: main
@@ -117,34 +117,8 @@ jobs:
           owner: userdocs
           workflow: matrix_multi_build_and_release_qbt_workflow_files.yml
           workflow_timeout_seconds: 300
-          workflow_inputs: '{ "test_run": "yes" }'
 
-      - name: Await workflow test run ID ${{ steps.return_dispatch_test.outputs.run_id }}
-        if: env.trigger_build_workflow == 'yes'
-        uses: Codex-/await-remote-run@v1.4.1
-        id: await_remote_test_run
-        with:
-          token: ${{ secrets.MYTOKEN }}
-          repo: qbt_static_test
-          owner: userdocs
-          run_id: ${{ steps.return_dispatch_test.outputs.run_id }}
-          run_timeout_seconds: 7200
-          poll_interval_ms: 10000
-
-      - name: Dispatch workflow build run
-        if: steps.await_remote_test_run.outcome == 'success' && env.trigger_build_workflow == 'yes'
-        uses: codex-/return-dispatch@v1
-        id: return_dispatch_build
-        with:
-          token: ${{ secrets.MYTOKEN }}
-          ref: main
-          repo: qbt_static_test
-          owner: userdocs
-          workflow: matrix_multi_build_and_release_qbt_workflow_files.yml
-          workflow_timeout_seconds: 300
-          workflow_inputs: '{ "test_run": "no" }'
-
-      - name: Await workflow test run ID ${{ steps.return_dispatch_build.outputs.run_id }}
+      - name: Await Run ID ${{ steps.return_dispatch.outputs.run_id }}
         if: env.trigger_build_workflow == 'yes'
         uses: Codex-/await-remote-run@v1.4.1
         id: await_remote_build_run
@@ -152,7 +126,7 @@ jobs:
           token: ${{ secrets.MYTOKEN }}
           repo: qbt_static_test
           owner: userdocs
-          run_id: ${{ steps.return_dispatch_build.outputs.run_id }}
+          run_id: ${{ steps.return_dispatch.outputs.run_id }}
           run_timeout_seconds: 7200
           poll_interval_ms: 10000
 
