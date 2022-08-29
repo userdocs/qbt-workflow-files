@@ -122,6 +122,7 @@ jobs:
       - name: Await Run ID ${{ steps.return_dispatch.outputs.run_id }}
         if: env.trigger_build_workflow == 'yes'
         uses: Codex-/await-remote-run@v1.4.1
+        id: await_remote_build_run
         with:
           token: ${{ secrets.MYTOKEN }}
           repo: qbittorrent-nox-static
@@ -131,5 +132,5 @@ jobs:
           poll_interval_ms: 10000
 
       - name: Pushover notification qbt static build
-        if: success () && env.trigger_build_workflow == 'yes'
+        if: steps.await_remote_build_run.outcome == 'success' && env.trigger_build_workflow == 'yes'
         run: curl -4s -d message="New dependency versions have been built" -d title="qbt static has been rebuilt" -d token="${{ secrets.PUSHOVER_API_TOKEN }}" -d user="${{ secrets.PUSHOVER_USER_KEY }}" 'https://api.pushover.net/1/messages.json'
