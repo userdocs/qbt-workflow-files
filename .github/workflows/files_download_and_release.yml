@@ -178,7 +178,6 @@ jobs:
               curl -sL "${qt5base_url}" > qt5base.tar.xz
           else
               git clone --no-tags --single-branch --branch "${qt5_github_tag}-lts-lgpl" --shallow-submodules --recurse-submodules -j"$(nproc)" --depth 1 "https://github.com/qt/qtbase.git" "qt5base"
-              rm -rf 'qt5base/.git'
               tar cJf qt5base.tar.xz qt5base
           fi
 
@@ -186,7 +185,6 @@ jobs:
               curl -sL "${qt5tools_url}" > qt5tools.tar.xz
           else
               git clone --no-tags --single-branch --branch "${qt5_github_tag}-lts-lgpl" --shallow-submodules --recurse-submodules -j"$(nproc)" --depth 1 "https://github.com/qt/qttools.git" "qt5tools"
-              rm -rf 'qt5tools/.git'
               tar cJf qt5tools.tar.xz qt5tools
           fi
 
@@ -208,7 +206,6 @@ jobs:
               curl -sL "${qt6base_url}" > qt6base.tar.xz
           else
               git clone --no-tags --single-branch --branch "${qt6_github_tag}" --shallow-submodules --recurse-submodules -j"$(nproc)" --depth 1 "https://github.com/qt/qtbase.git" "qt6base"
-              rm -rf 'qt6base/.git'
               tar cJf qt6base.tar.xz qt6base
           fi
 
@@ -216,7 +213,6 @@ jobs:
               curl -sL "${qt6tools_url}" > qt6tools.tar.xz
           else
               git clone --no-tags --single-branch --branch "${qt6_github_tag}" --shallow-submodules --recurse-submodules -j"$(nproc)" --depth 1 "https://github.com/qt/qttools.git" "qt6tools"
-              rm -rf 'qt6tools/.git'
               tar cJf qt6tools.tar.xz qt6tools
           fi
 
