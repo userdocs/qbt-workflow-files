@@ -185,7 +185,7 @@ jobs:
           if [[ $(curl -o /dev/null -sLIw '%{http_code}' "${qt5tools_url}") -eq '200' ]] ; then
               curl -sL "${qt5tools_url}" > qt5tools.tar.xz
           else
-              git clone --no-tags --single-branch --branch "${qt5_github_tag}-lts-lgpl" --shallow-submodules --recurse-submodules -j"$(nproc)" --depth 1 "https://github.com/qt/qtbase.git" "qt5tools"
+              git clone --no-tags --single-branch --branch "${qt5_github_tag}-lts-lgpl" --shallow-submodules --recurse-submodules -j"$(nproc)" --depth 1 "https://github.com/qt/qttools.git" "qt5tools"
               rm -rf 'qt5tools/.git'
               tar cJf qt5tools.tar.xz qt5tools
           fi
