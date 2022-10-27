@@ -204,8 +204,21 @@ jobs:
           printf "%s\n" "| qt6tools | ${qt6_version} | ${qt6tools_url} |" >> body.md
           printf "${qt6_version//\./}" >> tag_name.txt
 
-          curl -sL "${qt6base_url}" > qt6base.tar.xz
-          curl -sL "${qt6tools_url}" > qt6tools.tar.xz
+          if [[ $(curl -o /dev/null -sLIw '%{http_code}' "${qt6base_url}") -eq '200' ]] ; then
+              curl -sL "${qt6base_url}" > qt6base.tar.xz
+          else
+              git clone --no-tags --single-branch --branch "${qt6_github_tag}" --shallow-submodules --recurse-submodules -j"$(nproc)" --depth 1 "https://github.com/qt/qtbase.git" "qt6base"
+              rm -rf 'qt6base/.git'
+              tar cJf qt6base.tar.xz qt6base
+          fi
+
+          if [[ $(curl -o /dev/null -sLIw '%{http_code}' "${qt6tools_url}") -eq '200' ]] ; then
+              curl -sL "${qt6tools_url}" > qt6tools.tar.xz
+          else
+              git clone --no-tags --single-branch --branch "${qt6_github_tag}" --shallow-submodules --recurse-submodules -j"$(nproc)" --depth 1 "https://github.com/qt/qttools.git" "qt6tools"
+              rm -rf 'qt6tools/.git'
+              tar cJf qt6tools.tar.xz qt6tools
+          fi
 
       - name: qbittorrent
         run: |
