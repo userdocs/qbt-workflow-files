@@ -170,23 +170,25 @@ jobs:
           qt5base_url="https://download.qt.io/official_releases/qt/${qt5_short/v/}/${qt5_version}/submodules/qtbase-everywhere-opensource-src-${qt5_version}.tar.xz"
           qt5tools_url="https://download.qt.io/official_releases/qt/${qt5_short/v/}/${qt5_version}/submodules/qttools-everywhere-opensource-src-${qt5_version}.tar.xz"
 
-          printf "%s\n" "| qt5base | ${qt5_version} | ${qt5base_url} |" >> body.md
-          printf "%s\n" "| qt5tools | ${qt5_version} | ${qt5tools_url} |" >> body.md
-          printf "${qt5_version//\./}" >> tag_name.txt
-
           if [[ $(curl -o /dev/null -sLIw '%{http_code}' "${qt5base_url}") -eq '200' ]] ; then
               curl -sL "${qt5base_url}" > qt5base.tar.xz
           else
-              git clone --no-tags --single-branch --branch "${qt5_github_tag}-lts-lgpl" --shallow-submodules --recurse-submodules -j"$(nproc)" --depth 1 "https://github.com/qt/qtbase.git" "qt5base"
+              qt5base_url="https://github.com/qt/qtbase.git"
+              git clone --no-tags --single-branch --branch "${qt5_github_tag}-lts-lgpl" --shallow-submodules --recurse-submodules -j"$(nproc)" --depth 1 "${qt5base_url}" "qt5base"
               tar cJf qt5base.tar.xz qt5base
           fi
 
           if [[ $(curl -o /dev/null -sLIw '%{http_code}' "${qt5tools_url}") -eq '200' ]] ; then
               curl -sL "${qt5tools_url}" > qt5tools.tar.xz
           else
-              git clone --no-tags --single-branch --branch "${qt5_github_tag}-lts-lgpl" --shallow-submodules --recurse-submodules -j"$(nproc)" --depth 1 "https://github.com/qt/qttools.git" "qt5tools"
+              qt5tools_url="https://github.com/qt/qttools.git"
+              git clone --no-tags --single-branch --branch "${qt5_github_tag}-lts-lgpl" --shallow-submodules --recurse-submodules -j"$(nproc)" --depth 1 "${qt5tools_url}" "qt5tools"
               tar cJf qt5tools.tar.xz qt5tools
           fi
+
+          printf "%s\n" "| qt5base | ${qt5_version} | ${qt5base_url} |" >> body.md
+          printf "%s\n" "| qt5tools | ${qt5_version} | ${qt5tools_url} |" >> body.md
+          printf "${qt5_version//\./}" >> tag_name.txt
 
       - name: qt6
         run: |
@@ -198,23 +200,25 @@ jobs:
           qt6base_url="https://download.qt.io/official_releases/qt/${qt6_short/v/}/${qt6_version}/submodules/qtbase-everywhere-src-${qt6_version}.tar.xz"
           qt6tools_url="https://download.qt.io/official_releases/qt/${qt6_short/v/}/${qt6_version}/submodules/qttools-everywhere-src-${qt6_version}.tar.xz"
 
-          printf "%s\n" "| qt6base | ${qt6_version} | ${qt6base_url} |" >> body.md
-          printf "%s\n" "| qt6tools | ${qt6_version} | ${qt6tools_url} |" >> body.md
-          printf "${qt6_version//\./}" >> tag_name.txt
-
           if [[ $(curl -o /dev/null -sLIw '%{http_code}' "${qt6base_url}") -eq '200' ]] ; then
               curl -sL "${qt6base_url}" > qt6base.tar.xz
           else
-              git clone --no-tags --single-branch --branch "${qt6_github_tag}" --shallow-submodules --recurse-submodules -j"$(nproc)" --depth 1 "https://github.com/qt/qtbase.git" "qt6base"
+              qt6base_url="https://github.com/qt/qtbase.git"
+              git clone --no-tags --single-branch --branch "${qt6_github_tag}" --shallow-submodules --recurse-submodules -j"$(nproc)" --depth 1 "${qt6base_url}" "qt6base"
               tar cJf qt6base.tar.xz qt6base
           fi
 
           if [[ $(curl -o /dev/null -sLIw '%{http_code}' "${qt6tools_url}") -eq '200' ]] ; then
               curl -sL "${qt6tools_url}" > qt6tools.tar.xz
           else
-              git clone --no-tags --single-branch --branch "${qt6_github_tag}" --shallow-submodules --recurse-submodules -j"$(nproc)" --depth 1 "https://github.com/qt/qttools.git" "qt6tools"
+              qt6tools_url="https://github.com/qt/qttools.git"
+              git clone --no-tags --single-branch --branch "${qt6_github_tag}" --shallow-submodules --recurse-submodules -j"$(nproc)" --depth 1 "${qt6tools_url}" "qt6tools"
               tar cJf qt6tools.tar.xz qt6tools
           fi
+
+          printf "%s\n" "| qt6base | ${qt6_version} | ${qt6base_url} |" >> body.md
+          printf "%s\n" "| qt6tools | ${qt6_version} | ${qt6tools_url} |" >> body.md
+          printf "${qt6_version//\./}" >> tag_name.txt
 
       - name: qbittorrent
         run: |
