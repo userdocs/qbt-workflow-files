@@ -142,7 +142,7 @@ jobs:
 
       - name: Await Run ID ${{ steps.return_dispatch.outputs.run_id }}
         if: env.trigger_build_workflow == 'yes'
-        uses: Codex-/await-remote-run@v1.6.0
+        uses: Codex-/await-remote-run@v1
         id: await_remote_build_run
         with:
           token: ${{ secrets.MYTOKEN }}
