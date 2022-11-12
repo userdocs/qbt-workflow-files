@@ -53,13 +53,19 @@ jobs:
         run: |
           curl -sL https://api.github.com/repos/userdocs/qbittorrent-nox-static/releases/latest | jq -r '.body' | awk '/<!--/,/-->/{sub("<!--", "");sub("-->", "");sub("\r", ""); print $0 }' > current_build_version.sh
           source current_build_version.sh
-          curl -sL https://api.github.com/repos/userdocs/qbittorrent-nox-static/releases | jq -r 'first(.[] | select(.tag_name | contains ("release-'"${current_build_version[qbittorrent]}"'_v1.2")) | .body)' | awk '/^current_build_version\[libtorrent/{sub("\r", ""); print $0 }'  >> current_build_version.sh
+          curl -sL https://api.github.com/repos/userdocs/qbittorrent-nox-static/releases | jq -r 'first(.[] | select(.tag_name | contains ("release-'"${current_build_version[qbittorrent]}"'_v1.2")) | .body)' | awk '/^current_build_version\[libtorrent/{sub("\r", ""); print $0 }' >> current_build_version.sh
 
       - name: Test values - latest release vs workflow files
         run: |
           source current_github_tag.sh
           source current_workflow_version.sh
-          ver() { printf "%d%03d%03d%03d" ${1//./ }; }
+
+          ver() {
+            local test_array
+            read -ra test_array < <(printf "%s" "${@//./ }")
+            printf "%d%03d%03d%03d" "${test_array[@]}"
+          }
+
           for iray in "${!current_github_tag[@]}"; do
             if [[ "$(ver "${current_github_tag[$iray]}")" -gt "$(ver "${current_workflow_version[$iray]}")" ]]; then
               printf "%-14s latest:%-10s qbt-workflow-files:%-10s %s\n" "$iray" "${current_github_tag[$iray]}" "${current_workflow_version[$iray]}" "< New version available - workflow will be triggered"
@@ -97,7 +103,13 @@ jobs:
         run: |
           source current_workflow_version.sh
           source current_build_version.sh
-          ver() { printf "%d%03d%03d%03d" ${1//./ }; }
+
+          ver() {
+            local test_array
+            read -ra test_array < <(printf "%s" "${@//./ }")
+            printf "%d%03d%03d%03d" "${test_array[@]}"
+          }
+
           for iray in "${!current_workflow_version[@]}"; do
             if [[ "$(ver "${current_workflow_version[$iray]}")" -gt "$(ver "${current_build_version[$iray]}")" ]]; then
               printf "%-14s qbt-workflow-files:%-10s qbt-static-current:%-10s %s\n" "$iray" "${current_workflow_version[$iray]}" "${current_build_version[$iray]}" "< New version available - workflow will be triggered"
