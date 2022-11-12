@@ -47,13 +47,22 @@ jobs:
           CURRENT_GITHUB_TAG
 
       - name: bootstrap current_workflow_version array values to file
-        run: curl -sL https://api.github.com/repos/userdocs/qbt-workflow-files/releases/latest | jq -r '.body' | awk '/<!--/,/-->/{sub("<!--", "");sub("-->", "");sub("\r", ""); print $0 }' > current_workflow_version.sh
+        run: |
+          until curl -sLf "https://github.com/userdocs/qbt-workflow-files/releases/latest/download/dependency-version.json" > remote_current_workflow_version.json; do
+            echo "waiting for URL."
+            sleep 2
+          done
+          echo 'declare -A current_workflow_version' > current_workflow_version.sh
+          jq -r 'to_entries[]|@sh"current_workflow_version[\(.key)]=\(.value)"' remote_current_workflow_version.json >> current_workflow_version.sh
 
       - name: bootstrap current_build_version array values to file
         run: |
-          curl -sL https://api.github.com/repos/userdocs/qbittorrent-nox-static/releases/latest | jq -r '.body' | awk '/<!--/,/-->/{sub("<!--", "");sub("-->", "");sub("\r", ""); print $0 }' > current_build_version.sh
-          source current_build_version.sh
-          curl -sL https://api.github.com/repos/userdocs/qbittorrent-nox-static/releases | jq -r 'first(.[] | select(.tag_name | contains ("release-'"${current_build_version[qbittorrent]}"'_v1.2")) | .body)' | awk '/^current_build_version\[libtorrent/{sub("\r", ""); print $0 }' >> current_build_version.sh
+          until curl -sLf "https://github.com/userdocs/qbittorrent-nox-static/releases/latest/download/dependency-version.json" > current_build_version.json; do
+              echo "waiting for URL."
+              sleep 2
+          done
+          echo 'declare -A current_build_version' > current_build_version.sh
+          jq -r 'to_entries[]|@sh"current_build_version[\(.key)]=\(.value)"' < <(jq 'del(.revision)' current_build_version.json) >> current_build_version.sh
 
       - name: Test values - latest release vs workflow files
         run: |
