@@ -42,7 +42,7 @@ jobs:
           current_github_tag[qt6]="$(git ls-remote -q -t --refs "https://github.com/qt/qtbase.git" | awk '/v6/{sub("refs/tags/v", ""); sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
           current_github_tag[libtorrent_1_2]="$(git ls-remote -q -t --refs "https://github.com/arvidn/libtorrent.git" | awk '/\/v1/{sub("refs/tags/v", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
           current_github_tag[libtorrent_2_0]="$(git ls-remote -q -t --refs "https://github.com/arvidn/libtorrent.git" | awk '/\/v2/{sub("refs/tags/v", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
-          current_github_tag[boost]="$(git ls-remote -q -t --refs https://github.com/boostorg/boost.git | awk '{sub("refs/tags/boost-", "");sub("(.*)(rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+          current_github_tag[boost]="$(git ls-remote -q -t --refs https://github.com/boostorg/boost.git | awk '{sub("refs/tags/boost-", "");sub("(.*)(rc|alpha|beta|-)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
           current_github_tag[openssl]="$(git ls-remote -q -t --refs "https://github.com/openssl/openssl.git" | awk '/openssl/{sub("refs/tags/openssl-", "");sub("(.*)(v6|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
           CURRENT_GITHUB_TAG
 
