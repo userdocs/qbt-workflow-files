@@ -106,7 +106,14 @@ jobs:
         run: curl -4s -d message="New dependency versions have been released" -d title="qbt workflow files updated" -d token="${{ secrets.PUSHOVER_API_TOKEN }}" -d user="${{ secrets.PUSHOVER_USER_KEY }}" 'https://api.pushover.net/1/messages.json'
 
       - name: re-bootstrap updated current_workflow_version array values to file
-        run: curl -sL https://api.github.com/repos/userdocs/qbt-workflow-files/releases/latest | jq -r '.body' | awk '/<!--/,/-->/{sub("<!--", "");sub("-->", "");sub("\r", ""); print $0 }' > current_workflow_version.sh
+        if: env.trigger_files_workflow == 'yes'
+        run: |
+          until curl -sLf "https://github.com/userdocs/qbt-workflow-files/releases/latest/download/dependency-version.json" > current_workflow_version.json; do
+              echo "waiting for URL."
+              sleep 2
+          done
+          echo 'declare -A current_workflow_version' > current_workflow_version.sh
+          jq -r 'to_entries[]|@sh"current_workflow_version[\(.key)]=\(.value)"' current_workflow_version.json >> current_workflow_version.sh
 
       - name: Test values - workflow files vs current build
         run: |
