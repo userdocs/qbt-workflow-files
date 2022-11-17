@@ -84,7 +84,7 @@ jobs:
 
       - name: trigger workflow - qbt download and release reusable files for workflows
         if: env.trigger_files_workflow == 'yes'
-        uses: benc-uk/workflow-dispatch@v1
+        uses: benc-uk/workflow-dispatch@v121
         with:
           workflow: "qbt download and release reusable files for workflows"
           repo: "userdocs/qbt-workflow-files"
