@@ -264,7 +264,7 @@ jobs:
         run: echo "github_release_tag=$(cat tag_name.txt)" >> $GITHUB_ENV
 
       - name: Host - "Create release - tag - assets"
-        uses: ncipollo/release-action@v1.11.1
+        uses: ncipollo/release-action@v1
         with:
           prerelease: false
           artifacts: "*.tar.xz,dependency-version.json"
