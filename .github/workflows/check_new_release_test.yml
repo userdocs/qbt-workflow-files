@@ -90,13 +90,13 @@ jobs:
         with:
           workflow: "qbt download and release reusable files for workflows"
           repo: "userdocs/qbt-workflow-files"
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.MYTOKEN }}
 
       - name: Await local workflow - qbt download and release reusable files for workflows
         if: env.trigger_files_workflow == 'yes'
         uses: codex-/await-local-workflow-run@v1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.MYTOKEN }}
           workflow: "files_download_and_release.yml"
           timeout_mins: 20
           poll_interval_ms: 10000
@@ -141,7 +141,7 @@ jobs:
         uses: codex-/return-dispatch@v1
         id: return_dispatch
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.MYTOKEN }}
           ref: main
           repo: qbittorrent-nox-static-test
           owner: userdocs
@@ -153,7 +153,7 @@ jobs:
         uses: Codex-/await-remote-run@v1.6.0
         id: await_remote_build_run
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.MYTOKEN }}
           repo: qbittorrent-nox-static-test
           owner: userdocs
           run_id: ${{ steps.return_dispatch.outputs.run_id }}
