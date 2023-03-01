@@ -1,7 +1,9 @@
-name: check for new releases qbt_static_test
+name: check for new releases qbittorrent-nox-static-test
 
 on:
   workflow_dispatch:
+
+permissions: write-all
 
 jobs:
   skip_duplicate_job:
@@ -55,7 +57,7 @@ jobs:
 
       - name: bootstrap current_build_version array values to file
         run: |
-          until curl -sLf "https://github.com/userdocs/qbt_static_test/releases/latest/download/dependency-version.json" > current_build_version.json; do
+          until curl -sLf "https://github.com/userdocs/qbittorrent-nox-static-test/releases/latest/download/dependency-version.json" > current_build_version.json; do
               echo "waiting for URL."
               sleep 2
           done
@@ -88,13 +90,13 @@ jobs:
         with:
           workflow: "qbt download and release reusable files for workflows"
           repo: "userdocs/qbt-workflow-files"
-          token: ${{ secrets.MYTOKEN }}
+          token: ${{ secrets.TEST }}
 
       - name: Await local workflow - qbt download and release reusable files for workflows
         if: env.trigger_files_workflow == 'yes'
         uses: codex-/await-local-workflow-run@v1
         with:
-          token: ${{ secrets.MYTOKEN }}
+          token: ${{ secrets.TEST }}
           workflow: "files_download_and_release.yml"
           timeout_mins: 20
           poll_interval_ms: 10000
@@ -104,7 +106,14 @@ jobs:
         run: curl -4s -d message="New dependency versions have been released" -d title="qbt workflow files updated" -d token="${{ secrets.PUSHOVER_API_TOKEN }}" -d user="${{ secrets.PUSHOVER_USER_KEY }}" 'https://api.pushover.net/1/messages.json'
 
       - name: re-bootstrap updated current_workflow_version array values to file
-        run: curl -sL https://api.github.com/repos/userdocs/qbt-workflow-files/releases/latest | jq -r '.body' | awk '/<!--/,/-->/{sub("<!--", "");sub("-->", "");sub("\r", ""); print $0 }' > current_workflow_version.sh
+        if: env.trigger_files_workflow == 'yes'
+        run: |
+          until curl -sLf "https://github.com/userdocs/qbt-workflow-files/releases/latest/download/dependency-version.json" > current_workflow_version.json; do
+              echo "waiting for URL."
+              sleep 2
+          done
+          echo 'declare -A current_workflow_version' > current_workflow_version.sh
+          jq -r 'to_entries[]|@sh"current_workflow_version[\(.key)]=\(.value)"' current_workflow_version.json >> current_workflow_version.sh
 
       - name: Test values - workflow files vs current build
         run: |
@@ -132,20 +141,20 @@ jobs:
         uses: codex-/return-dispatch@v1
         id: return_dispatch
         with:
-          token: ${{ secrets.MYTOKEN }}
+          token: ${{ secrets.TEST }}
           ref: main
-          repo: qbt_static_test
+          repo: qbittorrent-nox-static-test
           owner: userdocs
           workflow: matrix_multi_build_and_release_qbt_workflow_files.yml
           workflow_timeout_seconds: 300
 
       - name: Await Run ID ${{ steps.return_dispatch.outputs.run_id }}
         if: env.trigger_build_workflow == 'yes'
-        uses: Codex-/await-remote-run@v1.6.0
+        uses: Codex-/await-remote-run@v1
         id: await_remote_build_run
         with:
-          token: ${{ secrets.MYTOKEN }}
-          repo: qbt_static_test
+          token: ${{ secrets.TEST }}
+          repo: qbittorrent-nox-static-test
           owner: userdocs
           run_id: ${{ steps.return_dispatch.outputs.run_id }}
           run_timeout_seconds: 7200

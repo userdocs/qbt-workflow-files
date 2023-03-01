@@ -17,11 +17,9 @@ It runs every 2 hours and only keeps the most current versions of the dependenci
 
 |    Dependencies    |
 | :----------------: |
-|       bison        |
-|        gawk        |
 |    glibc  2.31     |
-|    glibc  2.35     |
-|        zlib        |
+|    glibc  2.37     |
+|        zlib-ng        |
 |       iconv        |
 |        icu         |
 | double conversion  |
@@ -31,7 +29,7 @@ It runs every 2 hours and only keeps the most current versions of the dependenci
 |   libtorrent 2.0   |
 | qt5 base and tools |
 | qt6 base and tools |
-|     qBitorrent     |
+|     qBittorrent     |
 
 ## There is more
 
