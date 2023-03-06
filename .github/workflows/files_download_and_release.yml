@@ -54,14 +54,14 @@ jobs:
 
           curl -sL "$glibc_2_31_url" > glibc.2.31.tar.xz
 
-      - name: glibc 2.35
+      - name: glibc 2.37
         run: |
-          glibc_2_35_url="https://ftp.gnu.org/gnu/libc/glibc-2.35.tar.xz"
+          glibc_2_37_url="https://ftp.gnu.org/gnu/libc/glibc-2.37.tar.xz"
 
-          printf "%s\n" "| glibc | 2.35 | ${glibc_2_35_url} |" >> body.md
-          printf "235" >> tag_name.txt
+          printf "%s\n" "| glibc | 2.37 | ${glibc_2_37_url} |" >> body.md
+          printf "237" >> tag_name.txt
 
-          curl -sL "${glibc_2_35_url}" > glibc.2.35.tar.xz
+          curl -sL "${glibc_2_37_url}" > glibc.2.37.tar.xz
 
       - name: zlib-ng
         run: |
