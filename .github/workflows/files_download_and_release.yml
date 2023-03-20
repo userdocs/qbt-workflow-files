@@ -23,16 +23,6 @@ jobs:
           printf "%s\n" "|  Dependency   | Version | Source URL | " > body.md
           printf "%s\n" "| :-----------: | :-----: | :--------: |" >> body.md
 
-      - name: ninja
-        run: |
-          ninja_url="https://github.com/ninja-build/ninja/archive/refs/heads/master.tar.gz"
-          ninja_version="$(curl -sL "https://raw.githubusercontent.com/ninja-build/ninja/master/src/version.cc" | sed -rn 's|const char\* kNinjaVersion = "(.*)";|\1|p' | sed 's/\.git//g')"
-
-          printf "%s\n" "| ninja | ${ninja_version} | ${ninja_url} |" >> body.md
-          printf "${ninja_version//\./}" > tag_name.txt
-
-          curl -sL "$ninja_url" > ninja.tar.xz
-
       - name: bison
         run: |
           bison_url="https://ftp.gnu.org/gnu/bison/$(grep -Eo 'bison-([0-9]{1,3}[.]?)([0-9]{1,3}[.]?)([0-9]{1,3}?)\.tar.xz' <(curl -sL https://ftp.gnu.org/gnu/bison/) | sort -V | tail -1)"
@@ -40,7 +30,7 @@ jobs:
           bison_version=${bison_version/bison-} bison_version=${bison_version/.tar.xz}
 
           printf "%s\n" "| bison | ${bison_version} | ${bison_url} |" >> body.md
-          printf "${bison_version//\./}" >> tag_name.txt
+          printf "${bison_version//\./}" > tag_name.txt
 
           curl -sL "$bison_url" > bison.tar.xz
 
