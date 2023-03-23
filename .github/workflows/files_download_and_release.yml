@@ -23,34 +23,12 @@ jobs:
           printf "%s\n" "|  Dependency   | Version | Source URL | " > body.md
           printf "%s\n" "| :-----------: | :-----: | :--------: |" >> body.md
 
-      - name: bison
-        run: |
-          bison_url="https://ftp.gnu.org/gnu/bison/$(grep -Eo 'bison-([0-9]{1,3}[.]?)([0-9]{1,3}[.]?)([0-9]{1,3}?)\.tar.xz' <(curl -sL https://ftp.gnu.org/gnu/bison/) | sort -V | tail -1)"
-          bison_version="$(grep -Eo 'bison-([0-9]{1,3}[.]?)([0-9]{1,3}[.]?)([0-9]{1,3}?)\.tar.xz' <(curl -sL https://ftp.gnu.org/gnu/bison/) | sort -V | tail -1)"
-          bison_version=${bison_version/bison-} bison_version=${bison_version/.tar.xz}
-
-          printf "%s\n" "| bison | ${bison_version} | ${bison_url} |" >> body.md
-          printf "${bison_version//\./}" > tag_name.txt
-
-          curl -sL "$bison_url" > bison.tar.xz
-
-      - name: gawk
-        run: |
-          gawk_url="https://ftp.gnu.org/gnu/gawk/$(grep -Eo 'gawk-([0-9]{1,3}[.]?)([0-9]{1,3}[.]?)([0-9]{1,3}?)\.tar.xz' <(curl -sL https://ftp.gnu.org/gnu/gawk/) | sort -V | tail -1)"
-          gawk_version="$(grep -Eo 'gawk-([0-9]{1,3}[.]?)([0-9]{1,3}[.]?)([0-9]{1,3}?)\.tar.xz' <(curl -sL https://ftp.gnu.org/gnu/gawk/) | sort -V | tail -1)"
-          gawk_version=${gawk_version/gawk-} gawk_version=${gawk_version/.tar.xz}
-
-          printf "%s\n" "| gawk | ${gawk_version} | ${gawk_url} | " >> body.md
-          printf "${gawk_version//\./}" >> tag_name.txt
-
-          curl -sL "$gawk_url" > gawk.tar.xz
-
       - name: glibc 2.31
         run: |
           glibc_2_31_url="https://ftp.gnu.org/gnu/libc/glibc-2.31.tar.xz"
 
           printf "%s\n" "| glibc | 2.31 | ${glibc_2_31_url} |" >> body.md
-          printf "231" >> tag_name.txt
+          printf "231" > tag_name.txt
 
           curl -sL "$glibc_2_31_url" > glibc.2.31.tar.xz
 
