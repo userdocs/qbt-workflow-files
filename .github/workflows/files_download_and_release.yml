@@ -13,7 +13,7 @@ jobs:
         shell: bash
 
     env:
-      XZ_OPT: "-9"
+      XZ_OPT: "-9T0"
 
     steps:
       - uses: actions/checkout@v3
