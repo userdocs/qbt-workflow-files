@@ -67,6 +67,7 @@ jobs:
         run: |
           source current_github_tag.sh
           source current_workflow_version.sh
+          current_github_tag[qbittorrent]="4.6.0.0"
 
           ver() {
             local test_array
@@ -114,7 +115,7 @@ jobs:
         run: |
           source current_workflow_version.sh
           source current_build_version.sh
-          current_workflow_version[qbittorrent]="4.6.0.0"
+          # current_workflow_version[qbittorrent]="4.6.0.0"
 
           ver() {
             local test_array
