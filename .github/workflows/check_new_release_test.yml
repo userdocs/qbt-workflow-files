@@ -3,8 +3,6 @@ name: check for new releases qbittorrent-nox-static-test
 on:
   workflow_dispatch:
 
-permissions: write-all
-
 jobs:
   skip_duplicate_job:
     # continue-on-error: true # Uncomment once integration is finished
@@ -27,6 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     name: "Check for latest releases or tags"
     env:
+      GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       trigger_files_workflow: "no"
       trigger_build_workflow: "no"
 
@@ -86,11 +85,7 @@ jobs:
 
       - name: trigger workflow - qbt download and release reusable files for workflows
         if: env.trigger_files_workflow == 'yes'
-        uses: benc-uk/workflow-dispatch@v1
-        with:
-          workflow: "qbt download and release reusable files for workflows"
-          repo: "userdocs/qbt-workflow-files"
-          token: ${{ secrets.TEST }}
+        run: gh workflow run files_download_and_release.yml
 
       - name: Await local workflow - qbt download and release reusable files for workflows
         if: env.trigger_files_workflow == 'yes'
@@ -127,7 +122,7 @@ jobs:
             printf "%d%03d%03d%03d" "${test_array[@]}"
           }
 
-          for iray in "${!current_workflow_version[@]}"; do
+          for iray in "${!current_build_version[@]}"; do
             if [[ "$(ver "${current_workflow_version[$iray]}")" -gt "$(ver "${current_build_version[$iray]}")" ]]; then
               printf "%-14s qbt-workflow-files:%-10s qbt-static-current:%-10s %s\n" "$iray" "${current_workflow_version[$iray]}" "${current_build_version[$iray]}" "< New version available - workflow will be triggered"
               echo "trigger_build_workflow=yes" >> $GITHUB_ENV
@@ -145,6 +140,7 @@ jobs:
           ref: main
           repo: qbittorrent-nox-static-test
           owner: userdocs
+          workflow_inputs: '{ "skip_rerun": "false", "retries": "3" }'
           workflow: matrix_multi_build_and_release_qbt_workflow_files.yml
           workflow_timeout_seconds: 300
 
