@@ -27,6 +27,7 @@ jobs:
     runs-on: ubuntu-latest
     name: "Check for latest releases or tags"
     env:
+      GH_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       trigger_files_workflow: "no"
       trigger_build_workflow: "no"
 
@@ -86,11 +87,7 @@ jobs:
 
       - name: trigger workflow - qbt download and release reusable files for workflows
         if: env.trigger_files_workflow == 'yes'
-        uses: benc-uk/workflow-dispatch@v1
-        with:
-          workflow: "qbt download and release reusable files for workflows"
-          repo: "userdocs/qbt-workflow-files"
-          token: ${{ secrets.MYTOKEN }}
+        run: gh workflow run files_download_and_release.yml
 
       - name: Await local workflow - qbt download and release reusable files for workflows
         if: env.trigger_files_workflow == 'yes'
