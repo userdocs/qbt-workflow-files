@@ -272,6 +272,7 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           prerelease: false
+          makeLatest: true
           artifacts: "*.tar.xz,dependency-version.json"
           replacesArtifacts: true
           tag: "${{ env.github_release_tag }}"
