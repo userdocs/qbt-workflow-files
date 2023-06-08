@@ -93,9 +93,8 @@ jobs:
           printf "%s\n" "| openssl | ${openssl_version} | ${openssl_url} |" >> body.md
           printf "${openssl_version//\./}" >> tag_name.txt
 
-          git clone --single-branch --branch "${openssl_github_tag}" --shallow-submodules --recurse-submodules --depth 1 "${openssl_url}" openssl
-          tar cJf openssl.tar.xz openssl
-
+          curl -sL "https://github.com/openssl/openssl/releases/download/${openssl_github_tag}/${openssl_github_tag}.tar.gz" > openssl.tar.gz
+          gunzip -c < openssl.tar.gz | xz -c > openssl.tar.xz
       - name: boost
         run: |
           boost_version="$(git ls-remote -q -t --refs https://github.com/boostorg/boost.git | awk '{sub("refs/tags/boost-", "");sub("(.*)(rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
