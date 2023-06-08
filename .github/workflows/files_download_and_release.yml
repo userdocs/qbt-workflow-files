@@ -143,8 +143,8 @@ jobs:
           printf "%s\n" "| double_conversion | ${double_conversion_version} | ${double_conversion_url} |" >> body.md
           printf "${double_conversion_version//\./}" >> tag_name.txt
 
-          git clone --single-branch --branch "${double_conversion_github_tag}" --shallow-submodules --recurse-submodules --depth 1 "${double_conversion_url}" double_conversion
-          tar cJf double_conversion.tar.xz double_conversion
+          curl -sL "https://github.com/google/double-conversion/archive/refs/tags/${double_conversion_github_tag}.tar.gz" > double_conversion.tar.gz
+          gunzip -c < double_conversion.tar.gz | xz -c > double_conversion.tar.xz
 
       - name: qt5
         run: |
