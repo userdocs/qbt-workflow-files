@@ -156,7 +156,7 @@ jobs:
           qt5base_url="https://download.qt.io/official_releases/qt/${qt5_short/v/}/${qt5_version}/submodules/qtbase-everywhere-opensource-src-${qt5_version}.tar.xz"
           qt5tools_url="https://download.qt.io/official_releases/qt/${qt5_short/v/}/${qt5_version}/submodules/qttools-everywhere-opensource-src-${qt5_version}.tar.xz"
 
-          if [[ $(curl -o /dev/null -sLIw '%{http_code}' "${qt5base_url}") -eq '200' ]] ; then
+          if [[ $(curl -o /dev/null -sLIw '%{http_code}' "${qt5base_url}") -eq '200' ]]; then
               curl -sL "${qt5base_url}" > qt5base.tar.xz
           else
               qt5base_url="https://github.com/qt/qtbase.git"
