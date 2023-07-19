@@ -3,7 +3,7 @@ name: check for new releases qbittorrent-nox-static
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "*/15 * * * *"
 
 jobs:
   skip_duplicate_job:
