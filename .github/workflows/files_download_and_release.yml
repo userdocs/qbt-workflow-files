@@ -153,8 +153,8 @@ jobs:
           qt5_version="${qt5_github_tag/v}"
           echo "qt5=${qt5_version}" >> $GITHUB_ENV
 
-          qt5base_url="https://download.qt.io/official_releases/qt/${qt5_short/v/}/${qt5_version}/submodules/qtbase-everywhere-opensource-src-${qt5_version}.tar.xz"
-          qt5tools_url="https://download.qt.io/official_releases/qt/${qt5_short/v/}/${qt5_version}/submodules/qttools-everywhere-opensource-src-${qt5_version}.tar.xz"
+          qt5base_url="https://master.qt.io/archive/qt/${qt5_short/v/}/${qt5_version}/submodules/qtbase-everywhere-opensource-src-${qt5_version}.tar.xz"
+          qt5tools_url="https://master.qt.io/archive/qt/${qt5_short/v/}/${qt5_version}/submodules/qttools-everywhere-opensource-src-${qt5_version}.tar.xz"
 
           if [[ $(curl -o /dev/null -sLIw '%{http_code}' "${qt5base_url}") -eq '200' ]]; then
               curl -sL "${qt5base_url}" > qt5base.tar.xz
@@ -183,8 +183,8 @@ jobs:
           qt6_version="${qt6_github_tag/v}"
           echo "qt6=${qt6_version}" >> $GITHUB_ENV
 
-          qt6base_url="https://download.qt.io/official_releases/qt/${qt6_short/v/}/${qt6_version}/submodules/qtbase-everywhere-src-${qt6_version}.tar.xz"
-          qt6tools_url="https://download.qt.io/official_releases/qt/${qt6_short/v/}/${qt6_version}/submodules/qttools-everywhere-src-${qt6_version}.tar.xz"
+          qt6base_url="https://master.qt.io/archive/qt/${qt6_short/v/}/${qt6_version}/submodules/qtbase-everywhere-src-${qt6_version}.tar.xz"
+          qt6tools_url="https://master.qt.io/archive/qt/${qt6_short/v/}/${qt6_version}/submodules/qttools-everywhere-src-${qt6_version}.tar.xz"
 
           if [[ $(curl -o /dev/null -sLIw '%{http_code}' "${qt6base_url}") -eq '200' ]]; then
               curl -sL "${qt6base_url}" > qt6base.tar.xz
