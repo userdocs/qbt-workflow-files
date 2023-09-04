@@ -32,7 +32,7 @@ jobs:
       trigger_build_workflow: "no"
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: bootstrap current_github_tag array values to file
         run: |
