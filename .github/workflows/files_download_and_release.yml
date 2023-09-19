@@ -93,7 +93,13 @@ jobs:
           printf "%s\n" "| openssl | ${openssl_version} | ${openssl_url} |" >> body.md
           printf "${openssl_version//\./}" >> tag_name.txt
 
-          curl -sL "https://github.com/openssl/openssl/releases/download/${openssl_github_tag}/${openssl_github_tag}.tar.gz" > openssl.tar.gz
+          if [[ $(curl -o /dev/null -sLIw '%{http_code}' ""https://github.com/openssl/openssl/releases/download/${openssl_github_tag}/${openssl_github_tag}.tar.gz"") -eq '200' ]]; then
+              openssl_dl_url="https://github.com/openssl/openssl/releases/download/${openssl_github_tag}/${openssl_github_tag}.tar.gz"
+          else
+              openssl_dl_url="https://github.com/openssl/openssl/archive/refs/tags/${openssl_github_tag}.tar.gz"
+          fi
+
+          curl -sL "${openssl_dl_url}" > openssl.tar.gz
           gunzip -c < openssl.tar.gz | xz -c > openssl.tar.xz
       - name: boost
         run: |
