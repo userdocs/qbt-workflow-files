@@ -36,15 +36,15 @@ jobs:
 
           curl -sL "$glibc_2_31_url" > glibc.2.31.tar.xz
 
-      - name: glibc 2.37
+      - name: glibc 2.38
         run: |
-          glibc_2_37_url="https://ftp.gnu.org/gnu/libc/glibc-2.37.tar.xz"
-          echo "glibc_2_37=2.37" >> $GITHUB_ENV
+          glibc_2_38_url="https://ftp.gnu.org/gnu/libc/glibc-2.38.tar.xz"
+          echo "glibc_2_38=2.38" >> $GITHUB_ENV
 
-          printf "%s\n" "| glibc_2_37 | 2.37 | ${glibc_2_37_url} |" >> body.md
-          printf "237" >> tag_name.txt
+          printf "%s\n" "| glibc_2_38 | 2.38 | ${glibc_2_38_url} |" >> body.md
+          printf "238" >> tag_name.txt
 
-          curl -sL "${glibc_2_37_url}" > glibc.2.37.tar.xz
+          curl -sL "${glibc_2_38_url}" > glibc.2.38.tar.xz
 
       - name: zlib-ng
         run: |
@@ -231,7 +231,7 @@ jobs:
           <!--
           declare -A current_workflow_version
           current_workflow_version[glibc_2_31]="${{ env.glibc_2_31 }}"
-          current_workflow_version[glibc_2_37]="${{ env.glibc_2_37 }}"
+          current_workflow_version[glibc_2_38]="${{ env.glibc_2_38 }}"
           current_workflow_version[zlib]="${{ env.zlib }}"
           current_workflow_version[iconv]="${{ env.iconv }}"
           current_workflow_version[icu]="${{ env.icu }}"
@@ -249,7 +249,7 @@ jobs:
           cat >> "dependency-version.json" <<- CURRENT_WORKFLOW_VERSION_JSON
           {
             "glibc_2_31": "${{ env.glibc_2_31 }}",
-            "glibc_2_37": "${{ env.glibc_2_37 }}",
+            "glibc_2_38": "${{ env.glibc_2_38 }}",
             "zlib": "${{ env.zlib }}",
             "iconv": "${{ env.iconv }}",
             "icu": "${{ env.icu }}",
