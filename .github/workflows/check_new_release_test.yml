@@ -134,7 +134,7 @@ jobs:
 
       - name: Dispatch an action and get the run ID
         if: env.trigger_build_workflow == 'yes'
-        uses: codex-/return-dispatch@v1
+        uses: codex-/return-dispatch@v2
         id: return_dispatch
         with:
           token: ${{ secrets.TEST }}
