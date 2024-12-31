@@ -92,7 +92,7 @@ jobs:
         if: env.trigger_files_workflow == 'yes'
         uses: codex-/await-local-workflow-run@v1
         with:
-          token: ${{ secrets.TEST }}
+          token: ${{ secrets.MYTOKEN }}
           workflow: "files_download_and_release.yml"
           timeout_mins: 20
           poll_interval_ms: 10000
@@ -137,7 +137,7 @@ jobs:
         uses: codex-/return-dispatch@v2
         id: return_dispatch
         with:
-          token: ${{ secrets.TEST }}
+          token: ${{ secrets.MYTOKEN }}
           ref: main
           repo: qbittorrent-nox-static-test
           owner: userdocs
@@ -150,7 +150,7 @@ jobs:
         uses: Codex-/await-remote-run@v1
         id: await_remote_build_run
         with:
-          token: ${{ secrets.TEST }}
+          token: ${{ secrets.MYTOKEN }}
           repo: qbittorrent-nox-static-test
           owner: userdocs
           run_id: ${{ steps.return_dispatch.outputs.run_id }}
