@@ -142,7 +142,7 @@ jobs:
           repo: qbittorrent-nox-static
           owner: userdocs
           workflow_inputs: '{ "skip_rerun": "false", "retries": "3" }'
-          workflow: matrix_multi_build_and_release_qbt_workflow_files.yml
+          workflow: ci-main-reusable-caller.yml
           workflow_timeout_seconds: 300
 
       - name: Await Run ID ${{ steps.return_dispatch.outputs.run_id }}
