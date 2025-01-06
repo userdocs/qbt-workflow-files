@@ -18,8 +18,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
+          persist-credentials: false
           ref: ${{ github.event.client_payload.sha }}
-      - run: echo using SHA ${{ github.event.client_payload.sha }}
+
+      - run: echo using SHA ${SHA}
+        env:
+          SHA: ${{ github.event.client_payload.sha }}
 
       - name: bootstrap latest release dependency-version.json
         run: curl -sL "https://github.com/userdocs/qbt-workflow-files/releases/latest/download/dependency-version.json" -o dv.json
