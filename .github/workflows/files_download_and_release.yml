@@ -15,6 +15,9 @@ jobs:
     env:
       XZ_OPT: "-9T0"
 
+    permissions:
+      contents: write
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -32,26 +35,6 @@ jobs:
         run: |
           printf "%s\n" "|  Dependency   | Version | Source URL | " > body.md
           printf "%s\n" "| :-----------: | :-----: | :--------: |" >> body.md
-
-      - name: glibc 2.31
-        run: |
-          glibc_2_31_url="https://ftp.gnu.org/gnu/libc/glibc-2.31.tar.xz"
-          echo "glibc_2_31=2.31" >> $GITHUB_ENV
-
-          printf "%s\n" "| glibc_2_31 | 2.31 | ${glibc_2_31_url} |" >> body.md
-          printf "231" > tag_name.txt
-
-          curl -sL "$glibc_2_31_url" > glibc.2.31.tar.xz
-
-      - name: glibc 2.38
-        run: |
-          glibc_2_38_url="https://ftp.gnu.org/gnu/libc/glibc-2.38.tar.xz"
-          echo "glibc_2_38=2.38" >> $GITHUB_ENV
-
-          printf "%s\n" "| glibc_2_38 | 2.38 | ${glibc_2_38_url} |" >> body.md
-          printf "238" >> tag_name.txt
-
-          curl -sL "${glibc_2_38_url}" > glibc.2.38.tar.xz
 
       - name: glibc 2.40
         run: |
