@@ -35,6 +35,7 @@ jobs:
       trigger_build_workflow: "no"
 
     permissions:
+      actions: write
       contents: read
     steps:
       - uses: actions/checkout@v4
