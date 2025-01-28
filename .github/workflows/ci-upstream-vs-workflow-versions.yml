@@ -1,0 +1,66 @@
+name: ci - upstream-vs-workflow-versions
+
+on:
+  workflow_call:
+    inputs:
+      force_build:
+        type: string
+        required: false
+    outputs:
+      release-workflow-files:
+        value: ${{ jobs.upstream-vs-workflow-versions.outputs.release-workflow-files }}
+
+jobs:
+  upstream-vs-workflow-versions:
+    runs-on: ubuntu-24.04
+    outputs:
+      release-workflow-files: ${{ steps.release-workflow-files.outputs.release-workflow-files }}
+    env:
+      force_build: ${{ inputs.force_build }}
+    steps:
+      - name: bootstrap current_github_tag array values to file
+        run: |
+          cat > "current_github_tag.sh" <<- CURRENT_GITHUB_TAG
+          declare -A current_github_tag
+          current_github_tag[qbittorrent]="$(git ls-remote -q -t --refs "https://github.com/qbittorrent/qBittorrent.git" | awk '{sub("refs/tags/release-", "");sub("(.*)(-[^0-9].*|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+          current_github_tag[qt5]="$(git ls-remote -q -t --refs https://github.com/qt/qtbase.git | awk '/v5(.*)-lts-lgpl/{sub("refs/tags/v", ""); print $2 }' | sed 's/-lts-lgpl//g' | awk '!/^$/' | sort -rV | head -n1)"
+          current_github_tag[qt6]="$(git ls-remote -q -t --refs "https://github.com/qt/qtbase.git" | awk '/v6/{sub("refs/tags/v", ""); sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+          current_github_tag[libtorrent_1_2]="$(git ls-remote -q -t --refs "https://github.com/arvidn/libtorrent.git" | awk '/\/v1/{sub("refs/tags/v", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+          current_github_tag[libtorrent_2_0]="$(git ls-remote -q -t --refs "https://github.com/arvidn/libtorrent.git" | awk '/\/v2/{sub("refs/tags/v", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+          current_github_tag[boost]="$(git ls-remote -q -t --refs https://github.com/boostorg/boost.git | awk '{sub("refs/tags/boost-", "");sub("(.*)(rc|alpha|beta|-)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+          current_github_tag[openssl]="$(git ls-remote -q -t --refs "https://github.com/openssl/openssl.git" | awk '/openssl/{sub("refs/tags/openssl-", "");sub("(.*)(v6|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+          CURRENT_GITHUB_TAG
+
+      - name: bootstrap current_workflow_version array values to file
+        run: |
+          until curl -sLf "https://github.com/userdocs/qbt-workflow-files/releases/latest/download/dependency-version.json" > current_workflow_version.json; do
+              echo "waiting for URL."
+              sleep 2
+          done
+          echo 'declare -A current_workflow_version' > current_workflow_version.sh
+          jq -r 'to_entries[]|@sh"current_workflow_version[\(.key)]=\(.value)"' current_workflow_version.json >> current_workflow_version.sh
+
+      - name: Test values - latest upstream release versions vs workflow files
+        id: release-workflow-files
+        run: |
+          source current_github_tag.sh
+          source current_workflow_version.sh
+
+          ver() {
+            local test_array
+            read -ra test_array < <(printf "%s" "${@//./ }")
+            printf "%d%03d%03d%03d" "${test_array[@]}"
+          }
+
+          for iray in "${!current_github_tag[@]}"; do
+            if [[ "$(ver "${current_github_tag[$iray]}")" -gt "$(ver "${current_workflow_version[$iray]}")" ]]; then
+              printf "%-14s latest:%-10s qbt-workflow-files:%-10s %s\n" "$iray" "${current_github_tag[$iray]}" "${current_workflow_version[$iray]}" "< New version available - workflow will be triggered"
+              printf '%s\n' "release-workflow-files=true" >> $GITHUB_OUTPUT
+            else
+              printf "%-14s latest:%-10s qbt-workflow-files:%-10s\n" "$iray" "${current_github_tag[$iray]}" "${current_workflow_version[$iray]}"
+            fi
+          done
+
+          if [[ "${force_build}" == 'true' ]]; then
+            printf '%s\n' "release-workflow-files=true" >> $GITHUB_OUTPUT
+          fi

@@ -1,23 +1,21 @@
-name: qbt download and release reusable files for workflows
+name: ci - workflows-files-release
 
 on:
-  workflow_dispatch:
-  repository_dispatch:
-    types: [check-for-new-releases]
+  workflow_call:
+    secrets:
+      PUSHOVER_API_TOKEN:
+        required: true
+      PUSHOVER_USER_KEY:
+        required: true
 
 jobs:
-  build:
-    runs-on: ubuntu-24.04-arm
+  workflows-files-release:
+    runs-on: ubuntu-24.04
     defaults:
       run:
         shell: bash
-
     env:
       XZ_OPT: "-9T0"
-
-    permissions:
-      contents: write
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -291,6 +289,7 @@ jobs:
         run: echo "github_release_tag=$(cat tag_name.txt)" >> $GITHUB_ENV
 
       - name: Host - "Create release - tag - assets"
+        id: workflow_files_release
         uses: ncipollo/release-action@v1
         with:
           prerelease: false
@@ -301,4 +300,8 @@ jobs:
           name: "Files to be reused in qbt static matrix builds"
           bodyFile: release.md
           allowUpdates: true
-          token: "${{ secrets.GITHUB_TOKEN }}"
+          token: "${{ github.token }}"
+
+      - name: Pushover notification workflows
+        if: steps.workflow_files_release.outcome == 'success'
+        run: curl -4s -d message="New dependency versions have been released" -d title="qbt workflow files updated" -d token="${{ secrets.PUSHOVER_API_TOKEN }}" -d user="${{ secrets.PUSHOVER_USER_KEY }}" 'https://api.pushover.net/1/messages.json'
