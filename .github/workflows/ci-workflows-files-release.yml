@@ -1,23 +1,21 @@
-name: qbt download and release reusable files for workflows
+name: ci - workflows-files-release
 
 on:
-  workflow_dispatch:
-  repository_dispatch:
-    types: [check-for-new-releases]
+  workflow_call:
+    secrets:
+      PUSHOVER_API_TOKEN:
+        required: true
+      PUSHOVER_USER_KEY:
+        required: true
 
 jobs:
-  build:
-    runs-on: ubuntu-24.04-arm
+  workflows-files-release:
+    runs-on: ubuntu-24.04
     defaults:
       run:
         shell: bash
-
     env:
       XZ_OPT: "-9T0"
-
-    permissions:
-      contents: write
-
     steps:
       - uses: actions/checkout@v4
         with:
@@ -42,7 +40,7 @@ jobs:
           echo "glibc_2_40=2.40" >> $GITHUB_ENV
 
           printf "%s\n" "| glibc_2_40 | 2.40 | ${glibc_2_40_url} |" >> body.md
-          printf "240" >> tag_name.txt
+          printf "240" > tag_name.txt
 
           curl -sL "${glibc_2_40_url}" > glibc.2.40.tar.xz
 
@@ -247,8 +245,7 @@ jobs:
           cat >> "body.md" <<- CURRENT_WORKFLOW_VERSION
           <!--
           declare -A current_workflow_version
-          current_workflow_version[glibc_2_31]="${{ env.glibc_2_31 }}"
-          current_workflow_version[glibc_2_38]="${{ env.glibc_2_38 }}"
+          current_workflow_version[glibc_2_40]="${{ env.glibc_2_40 }}"
           current_workflow_version[zlib]="${{ env.zlib }}"
           current_workflow_version[iconv]="${{ env.iconv }}"
           current_workflow_version[icu]="${{ env.icu }}"
@@ -265,8 +262,7 @@ jobs:
 
           cat >> "dependency-version.json" <<- CURRENT_WORKFLOW_VERSION_JSON
           {
-            "glibc_2_31": "${{ env.glibc_2_31 }}",
-            "glibc_2_38": "${{ env.glibc_2_38 }}",
+            "glibc_2_40": "${{ env.glibc_2_40 }}",
             "zlib": "${{ env.zlib }}",
             "iconv": "${{ env.iconv }}",
             "icu": "${{ env.icu }}",
@@ -281,6 +277,11 @@ jobs:
           }
           CURRENT_WORKFLOW_VERSION_JSON
 
+      - name: Generate release asset attestation
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: "*.tar.xz"
+
       - name: Pandoc - format body
         run: |
           pandoc_git_tag="$(git ls-remote -q -t --refs https://github.com/jgm/pandoc.git | awk '/tags\/[0-9]/{sub("refs/tags/", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n 1)"
@@ -291,6 +292,7 @@ jobs:
         run: echo "github_release_tag=$(cat tag_name.txt)" >> $GITHUB_ENV
 
       - name: Host - "Create release - tag - assets"
+        id: workflow_files_release
         uses: ncipollo/release-action@v1
         with:
           prerelease: false
@@ -301,4 +303,8 @@ jobs:
           name: "Files to be reused in qbt static matrix builds"
           bodyFile: release.md
           allowUpdates: true
-          token: "${{ secrets.GITHUB_TOKEN }}"
+          token: "${{ github.token }}"
+
+      - name: Pushover notification workflows
+        if: steps.workflow_files_release.outcome == 'success'
+        run: curl -4s -d message="New dependency versions have been released" -d title="qbt workflow files updated" -d token="${{ secrets.PUSHOVER_API_TOKEN }}" -d user="${{ secrets.PUSHOVER_USER_KEY }}" 'https://api.pushover.net/1/messages.json'

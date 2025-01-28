@@ -1,0 +1,237 @@
+name: ci - main reusable caller
+
+on:
+  workflow_dispatch:
+    inputs:
+      use_test_repo:
+        description: "use qbittorrent-nox-test repo?"
+        required: true
+        default: false
+        type: boolean
+      force_build:
+        description: "bypass version check?"
+        required: true
+        default: false
+        type: boolean
+      skip_workflow_files_release:
+        description: "bypass workflow files release?"
+        required: true
+        default: false
+        type: boolean
+      skip_rerun:
+        description: "Skip rerun?"
+        required: true
+        default: false
+        type: boolean
+      retries:
+        description: "Number of rerun retries"
+        required: true
+        default: "3"
+        type: choice
+        options: ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
+
+  schedule:
+    - cron: "*/15 * * * *"
+
+permissions: {}
+
+jobs:
+  skip_duplicate_job:
+    runs-on: ubuntu-24.04
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    permissions:
+      actions: write
+      contents: read
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@v5
+        with:
+          concurrent_skipping: "always"
+          cancel_others: "false"
+          skip_after_successful_duplicate: false
+          do_not_skip: ""
+
+  scheduled_defaults:
+    if: needs.skip_duplicate_job.outputs.should_skip != 'true'
+    needs: [skip_duplicate_job]
+    runs-on: ubuntu-24.04
+    outputs:
+      use_test_repo: ${{ github.event.inputs.use_test_repo && 'qbittorrent-nox-static-test' || 'qbittorrent-nox-static' }}
+      test_repo_branch: ${{ github.event.inputs.use_test_repo && 'main' || 'master' }}
+      force_build: ${{ github.event.inputs.force_build || 'false' }}
+      skip_workflow_files_release: ${{ github.event.inputs.skip_workflow_files_release || 'false' }}
+      skip_rerun: ${{ github.event.inputs.skip_rerun || 'false' }}
+      retries: ${{ github.event.inputs.retries || '3' }}
+    steps:
+      - name: Setting Outputs from inputs
+        run: |
+          printf '%b\n\n' "Setting Outputs from Inputs"
+
+  show_outputs:
+    if: needs.skip_duplicate_job.outputs.should_skip != 'true'
+    needs: [skip_duplicate_job, scheduled_defaults]
+    runs-on: ubuntu-24.04
+    env:
+      use_test_repo: ${{ needs.scheduled_defaults.outputs.use_test_repo }}
+      test_repo_branch: ${{ needs.scheduled_defaults.outputs.test_repo_branch }}
+      force_build: ${{ needs.scheduled_defaults.outputs.force_build }}
+      skip_workflow_files_release: ${{ needs.scheduled_defaults.outputs.skip_workflow_files_release }}
+      skip_rerun: ${{ needs.scheduled_defaults.outputs.skip_rerun }}
+      retries: ${{ needs.scheduled_defaults.outputs.retries }}
+    steps:
+      - name: Set output
+        run: |
+          printf '%b\n' "# Scheduled Defaults Outputs Summary" >> $GITHUB_STEP_SUMMARY
+          printf '\n%b\n' ":octocat: Here is a summary of inputs set as string outputs that are used in workflows." >> $GITHUB_STEP_SUMMARY
+
+          printf '\n%b\n' "use_test_repo: \`${use_test_repo}\`" >> $GITHUB_STEP_SUMMARY
+          printf '\n%b\n' "test_repo_branch: \`${test_repo_branch}\`" >> $GITHUB_STEP_SUMMARY
+          printf '\n%b\n' "force_build: \`${force_build}\`" >> $GITHUB_STEP_SUMMARY
+          printf '\n%b\n' "skip_workflow_files_release: \`${skip_workflow_files_release}\`" >> $GITHUB_STEP_SUMMARY
+          printf '\n%b\n' "skip_rerun: \`${skip_rerun}\`" >> $GITHUB_STEP_SUMMARY
+          printf '\n%b\n' "retries: \`${retries}\`" >> $GITHUB_STEP_SUMMARY
+
+  ci-upstream-vs-workflow-versions:
+    if: needs.skip_duplicate_job.outputs.should_skip != 'true'
+    needs: [skip_duplicate_job, scheduled_defaults]
+    concurrency:
+      group: ci-upstream-vs-workflow-versions
+      cancel-in-progress: true
+    permissions:
+      contents: read
+    uses: ./.github/workflows/ci-upstream-vs-workflow-versions.yml
+    with:
+      force_build: ${{ needs.scheduled_defaults.outputs.force_build }}
+
+  ci-workflows-files-release:
+    if: >
+      needs.skip_duplicate_job.outputs.should_skip != 'true' &&
+      needs.ci-upstream-vs-workflow-versions.outputs.release-workflow-files == 'true' &&
+      needs.scheduled_defaults.outputs.skip_workflow_files_release == 'false'
+    needs:
+      [skip_duplicate_job, scheduled_defaults, ci-upstream-vs-workflow-versions]
+    concurrency:
+      group: ci-workflows-files-release
+      cancel-in-progress: true
+    permissions:
+      id-token: write
+      contents: write
+      attestations: write
+    uses: ./.github/workflows/ci-workflows-files-release.yml
+    secrets:
+      PUSHOVER_API_TOKEN: ${{ secrets.PUSHOVER_API_TOKEN }}
+      PUSHOVER_USER_KEY: ${{ secrets.PUSHOVER_USER_KEY }}
+
+  ci-workflow-vs-current-builds:
+    if: >
+      always() && !failure() && !cancelled() &&
+      needs.skip_duplicate_job.outputs.should_skip != 'true'
+    needs: [skip_duplicate_job, scheduled_defaults, ci-workflows-files-release]
+    concurrency:
+      group: ci-workflow-vs-current-builds
+      cancel-in-progress: true
+    permissions:
+      contents: write
+    uses: ./.github/workflows/ci-workflow-vs-current-builds.yml
+    with:
+      force_build: ${{ needs.scheduled_defaults.outputs.force_build }}
+
+  ci-trigger-qbittorrent-nox-build:
+    if: >
+      always() && !failure() && !cancelled() &&
+      needs.skip_duplicate_job.outputs.should_skip != 'true' &&
+      needs.ci-workflow-vs-current-builds.outputs.build-qbittorrent-nox == 'true'
+    needs:
+      [skip_duplicate_job, scheduled_defaults, ci-workflow-vs-current-builds]
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write
+    outputs:
+      run-id: ${{ steps.run-id.outputs.run-id }}
+    steps:
+      - name: Dispatch an action and get the run ID
+        uses: codex-/return-dispatch@v2
+        id: return-dispatch-id
+        with:
+          token: ${{ secrets.MYTOKEN }}
+          ref: ${{ needs.scheduled_defaults.outputs.test_repo_branch }}
+          repo: ${{ needs.scheduled_defaults.outputs.use_test_repo }}
+          owner: userdocs
+          workflow_inputs: '{ "skip_rerun": "false", "retries": "3" }'
+          workflow: ci-main-reusable-caller.yml
+          workflow_timeout_seconds: 300
+
+      - name: return-dispatch-id to output
+        id: run-id
+        env:
+          run_id: ${{ steps.return-dispatch-id.outputs.run_id }}
+        run: printf '%s\n' "run-id=${run_id}" >> $GITHUB_OUTPUT
+
+  ci-await-qbittorrent-nox-build:
+    if: >
+      always() && !failure() && !cancelled() &&
+      needs.skip_duplicate_job.outputs.should_skip != 'true' &&
+      needs.ci-workflow-vs-current-builds.outputs.build-qbittorrent-nox == 'true'
+    needs:
+      [
+        skip_duplicate_job,
+        scheduled_defaults,
+        ci-workflow-vs-current-builds,
+        ci-trigger-qbittorrent-nox-build,
+      ]
+    runs-on: ubuntu-24.04
+    permissions:
+      actions: write
+    steps:
+      - name: Await Run ID ${{ needs.ci-trigger-qbittorrent-nox-build.outputs.run-id }}
+        uses: Codex-/await-remote-run@v1
+        id: await_remote_build_run
+        with:
+          token: ${{ secrets.MYTOKEN }}
+          repo: ${{ needs.scheduled_defaults.outputs.use_test_repo }}
+          owner: userdocs
+          run_id: ${{ needs.ci-trigger-qbittorrent-nox-build.outputs.run-id }}
+          run_timeout_seconds: 7200
+          poll_interval_ms: 10000
+
+      - name: Pushover notification qbt static build
+        if: steps.await_remote_build_run.outcome == 'success'
+        run: curl -4s -d message="New dependency versions have been built" -d title="qbt static has been rebuilt" -d token="${{ secrets.PUSHOVER_API_TOKEN }}" -d user="${{ secrets.PUSHOVER_USER_KEY }}" 'https://api.pushover.net/1/messages.json'
+
+  ci-auto-rerun-failed-jobs:
+    if: failure() && (needs.scheduled_defaults.outputs.skip_rerun || 'false') == 'false'
+    needs:
+      [
+        skip_duplicate_job,
+        scheduled_defaults,
+        ci-upstream-vs-workflow-versions,
+        ci-workflows-files-release,
+        ci-workflow-vs-current-builds,
+        ci-trigger-qbittorrent-nox-build,
+        ci-await-qbittorrent-nox-build,
+      ]
+    concurrency:
+      group: ci-auto-rerun-failed-jobs
+      cancel-in-progress: true
+    permissions:
+      actions: write
+    runs-on: ubuntu-24.04
+    env:
+      GH_TOKEN: "${{ secrets.AUTO_RERUN || github.token }}"
+      github_repo: "" # To use ci-auto-rerun-failed-jobs.yml hosted in a remote repository else default to the current repository. Requires PAT token AUTO_RERUN
+      retries: ${{ needs.scheduled_defaults.outputs.retries || '3' }}
+      distinct_id: ${{ github.event.inputs.distinct_id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: ci-auto-rerun-failed-jobs via ${{ env.github_repo || github.repository }}
+        run: >
+          gh workflow run ci-auto-rerun-failed-jobs-action.yml
+          --repo "${github_repo:-$GITHUB_REPOSITORY}"
+          -f github_repo=${GITHUB_REPOSITORY}
+          -f run_id=${GITHUB_RUN_ID}
+          -f attempts=${GITHUB_RUN_ATTEMPT}
+          -f retries=${retries}
+          -f distinct_id=${distinct_id}
