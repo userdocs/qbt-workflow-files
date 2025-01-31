@@ -245,7 +245,7 @@ jobs:
           cat >> "body.md" <<- CURRENT_WORKFLOW_VERSION
           <!--
           declare -A current_workflow_version
-          current_workflow_version[glibc_2_40]="${{ env.glibc_2_40 }}"
+          current_workflow_version[glibc]="${{ env.glibc_2_40 }}"
           current_workflow_version[zlib]="${{ env.zlib }}"
           current_workflow_version[iconv]="${{ env.iconv }}"
           current_workflow_version[icu]="${{ env.icu }}"
@@ -262,7 +262,7 @@ jobs:
 
           cat >> "dependency-version.json" <<- CURRENT_WORKFLOW_VERSION_JSON
           {
-            "glibc_2_40": "${{ env.glibc_2_40 }}",
+            "glibc": "${{ env.glibc_2_40 }}",
             "zlib": "${{ env.zlib }}",
             "iconv": "${{ env.iconv }}",
             "icu": "${{ env.icu }}",
@@ -276,6 +276,24 @@ jobs:
             "qbittorrent": "${{ env.qbittorrent }}"
           }
           CURRENT_WORKFLOW_VERSION_JSON
+
+          cat >> "pushover_body.text" <<- PUSHOVER_BODY_TEXT
+
+          Here are the latest dependency versions that have been released:
+
+          glibc: ${{ env.glibc_2_40 }}
+          zlib: ${{ env.zlib }}
+          iconv: ${{ env.iconv }}
+          icu: ${{ env.icu }}
+          openssl: ${{ env.openssl }}
+          boost: ${{ env.boost }}
+          libtorrent_1_2: ${{ env.libtorrent_1_2 }}
+          libtorrent_2_0: ${{ env.libtorrent_2_0 }}
+          double_conversion: ${{ env.double_conversion }}
+          qt5: ${{ env.qt5 }}
+          qt6: ${{ env.qt6 }}
+          qbittorrent: ${{ env.qbittorrent }}
+          PUSHOVER_BODY_TEXT
 
       - name: Generate release asset attestation
         uses: actions/attest-build-provenance@v2
@@ -307,4 +325,6 @@ jobs:
 
       - name: Pushover notification workflows
         if: steps.workflow_files_release.outcome == 'success'
-        run: curl -4s -d message="New dependency versions have been released" -d title="qbt workflow files updated" -d token="${{ secrets.PUSHOVER_API_TOKEN }}" -d user="${{ secrets.PUSHOVER_USER_KEY }}" 'https://api.pushover.net/1/messages.json'
+        run: |
+          message="$(printf '%b\n' "New dependency versions have been released\n\n")"
+          curl -4s -d message="$(cat pushover_body.text)" -d title="qbt workflow files updated" -d token="${{ secrets.PUSHOVER_API_TOKEN }}" -d user="${{ secrets.PUSHOVER_USER_KEY }}" 'https://api.pushover.net/1/messages.json'

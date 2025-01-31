@@ -13,6 +13,11 @@ on:
         required: true
         default: false
         type: boolean
+      workflow_files_release_only:
+        description: "only run workflow files release?"
+        required: true
+        default: false
+        type: boolean
       skip_workflow_files_release:
         description: "bypass workflow files release?"
         required: true
@@ -57,9 +62,10 @@ jobs:
     needs: [skip_duplicate_job]
     runs-on: ubuntu-24.04
     outputs:
-      use_test_repo: ${{ github.event.inputs.use_test_repo && 'qbittorrent-nox-static-test' || 'qbittorrent-nox-static' }}
-      test_repo_branch: ${{ github.event.inputs.use_test_repo && 'main' || 'master' }}
+      use_test_repo: ${{ github.event.inputs.use_test_repo == 'true' && 'qbittorrent-nox-static-test' || 'qbittorrent-nox-static' }}
+      test_repo_branch: ${{ github.event.inputs.use_test_repo == 'true' && 'main' || 'master' }}
       force_build: ${{ github.event.inputs.force_build || 'false' }}
+      workflow_files_release_only: ${{ github.event.inputs.workflow_files_release_only || 'false' }}
       skip_workflow_files_release: ${{ github.event.inputs.skip_workflow_files_release || 'false' }}
       skip_rerun: ${{ github.event.inputs.skip_rerun || 'false' }}
       retries: ${{ github.event.inputs.retries || '3' }}
@@ -76,6 +82,7 @@ jobs:
       use_test_repo: ${{ needs.scheduled_defaults.outputs.use_test_repo }}
       test_repo_branch: ${{ needs.scheduled_defaults.outputs.test_repo_branch }}
       force_build: ${{ needs.scheduled_defaults.outputs.force_build }}
+      workflow_files_release_only: ${{ needs.scheduled_defaults.outputs.workflow_files_release_only }}
       skip_workflow_files_release: ${{ needs.scheduled_defaults.outputs.skip_workflow_files_release }}
       skip_rerun: ${{ needs.scheduled_defaults.outputs.skip_rerun }}
       retries: ${{ needs.scheduled_defaults.outputs.retries }}
@@ -88,6 +95,7 @@ jobs:
           printf '\n%b\n' "use_test_repo: \`${use_test_repo}\`" >> $GITHUB_STEP_SUMMARY
           printf '\n%b\n' "test_repo_branch: \`${test_repo_branch}\`" >> $GITHUB_STEP_SUMMARY
           printf '\n%b\n' "force_build: \`${force_build}\`" >> $GITHUB_STEP_SUMMARY
+          printf '\n%b\n' "workflow_files_release_only: \`${workflow_files_release_only}\`" >> $GITHUB_STEP_SUMMARY
           printf '\n%b\n' "skip_workflow_files_release: \`${skip_workflow_files_release}\`" >> $GITHUB_STEP_SUMMARY
           printf '\n%b\n' "skip_rerun: \`${skip_rerun}\`" >> $GITHUB_STEP_SUMMARY
           printf '\n%b\n' "retries: \`${retries}\`" >> $GITHUB_STEP_SUMMARY
@@ -126,7 +134,8 @@ jobs:
   ci-workflow-vs-current-builds:
     if: >
       always() && !failure() && !cancelled() &&
-      needs.skip_duplicate_job.outputs.should_skip != 'true'
+      needs.skip_duplicate_job.outputs.should_skip != 'true' &&
+      needs.scheduled_defaults.outputs.workflow_files_release_only != 'true'
     needs: [skip_duplicate_job, scheduled_defaults, ci-workflows-files-release]
     concurrency:
       group: ci-workflow-vs-current-builds
@@ -141,7 +150,8 @@ jobs:
     if: >
       always() && !failure() && !cancelled() &&
       needs.skip_duplicate_job.outputs.should_skip != 'true' &&
-      needs.ci-workflow-vs-current-builds.outputs.build-qbittorrent-nox == 'true'
+      needs.ci-workflow-vs-current-builds.outputs.build-qbittorrent-nox == 'true' &&
+      needs.scheduled_defaults.outputs.workflow_files_release_only != 'true'
     needs:
       [skip_duplicate_job, scheduled_defaults, ci-workflow-vs-current-builds]
     runs-on: ubuntu-24.04
@@ -172,7 +182,8 @@ jobs:
     if: >
       always() && !failure() && !cancelled() &&
       needs.skip_duplicate_job.outputs.should_skip != 'true' &&
-      needs.ci-workflow-vs-current-builds.outputs.build-qbittorrent-nox == 'true'
+      needs.ci-workflow-vs-current-builds.outputs.build-qbittorrent-nox == 'true' &&
+      needs.scheduled_defaults.outputs.workflow_files_release_only != 'true'
     needs:
       [
         skip_duplicate_job,
