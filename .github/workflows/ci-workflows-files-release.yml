@@ -39,7 +39,7 @@ jobs:
           glibc_2_40_url="https://ftp.gnu.org/gnu/libc/glibc-2.40.tar.xz"
           echo "glibc_2_40=2.40" >> $GITHUB_ENV
 
-          printf "%s\n" "| glibc_2_40 | 2.40 | ${glibc_2_40_url} |" >> body.md
+          printf "%s\n" "| glibc | 2.40 | ${glibc_2_40_url} |" >> body.md
           printf "240" > tag_name.txt
 
           curl -sL "${glibc_2_40_url}" > glibc.2.40.tar.xz
