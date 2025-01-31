@@ -4,22 +4,22 @@ on:
   workflow_dispatch:
     inputs:
       use_test_repo:
-        description: "use qbittorrent-nox-test repo?"
+        description: "Use qbittorrent-nox-test repo?"
         required: true
         default: false
         type: boolean
       force_build:
-        description: "bypass version check?"
+        description: "Override version check and force build?"
         required: true
         default: false
         type: boolean
       workflow_files_release_only:
-        description: "only run workflow files release?"
+        description: "Only run workflow files release?"
         required: true
         default: false
         type: boolean
       skip_workflow_files_release:
-        description: "bypass workflow files release?"
+        description: "Skip workflow files release?"
         required: true
         default: false
         type: boolean
