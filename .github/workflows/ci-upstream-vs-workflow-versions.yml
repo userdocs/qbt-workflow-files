@@ -12,7 +12,7 @@ on:
 
 jobs:
   upstream-vs-workflow-versions:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     outputs:
       release-workflow-files: ${{ steps.release-workflow-files.outputs.release-workflow-files }}
     env:

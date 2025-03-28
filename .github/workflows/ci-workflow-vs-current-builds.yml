@@ -12,7 +12,7 @@ on:
 
 jobs:
   workflow-vs-current-builds:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     outputs:
       build-qbittorrent-nox: ${{ steps.build-qbittorrent-nox.outputs.build-qbittorrent-nox }}
     env:

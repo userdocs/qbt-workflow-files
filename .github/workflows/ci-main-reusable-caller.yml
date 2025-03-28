@@ -42,7 +42,7 @@ permissions: {}
 
 jobs:
   skip_duplicate_job:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
     permissions:
@@ -60,7 +60,7 @@ jobs:
   scheduled_defaults:
     if: needs.skip_duplicate_job.outputs.should_skip != 'true'
     needs: [skip_duplicate_job]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     outputs:
       use_test_repo: ${{ github.event.inputs.use_test_repo == 'true' && 'qbittorrent-nox-static-test' || 'qbittorrent-nox-static' }}
       test_repo_branch: ${{ github.event.inputs.use_test_repo == 'true' && 'main' || 'master' }}
@@ -77,7 +77,7 @@ jobs:
   show_outputs:
     if: needs.skip_duplicate_job.outputs.should_skip != 'true'
     needs: [skip_duplicate_job, scheduled_defaults]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     env:
       use_test_repo: ${{ needs.scheduled_defaults.outputs.use_test_repo }}
       test_repo_branch: ${{ needs.scheduled_defaults.outputs.test_repo_branch }}
@@ -154,7 +154,7 @@ jobs:
       needs.scheduled_defaults.outputs.workflow_files_release_only != 'true'
     needs:
       [skip_duplicate_job, scheduled_defaults, ci-workflow-vs-current-builds]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     permissions:
       actions: write
     outputs:
@@ -191,7 +191,7 @@ jobs:
         ci-workflow-vs-current-builds,
         ci-trigger-qbittorrent-nox-build,
       ]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     permissions:
       actions: write
     steps:
@@ -227,7 +227,7 @@ jobs:
       cancel-in-progress: true
     permissions:
       actions: write
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-24.04-arm
     env:
       GH_TOKEN: "${{ secrets.AUTO_RERUN || github.token }}"
       github_repo: "" # To use ci-auto-rerun-failed-jobs.yml hosted in a remote repository else default to the current repository. Requires PAT token AUTO_RERUN
