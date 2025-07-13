@@ -259,35 +259,35 @@ jobs:
           cat >> "body.md" <<- CURRENT_WORKFLOW_VERSION
           <!--
           declare -A current_workflow_version
-          current_workflow_version[glibc]="${{ env.glibc_2_40 }}"
-          current_workflow_version[zlib]="${{ env.zlib }}"
-          current_workflow_version[iconv]="${{ env.iconv }}"
-          current_workflow_version[icu]="${{ env.icu }}"
-          current_workflow_version[openssl]="${{ env.openssl }}"
-          current_workflow_version[boost]="${{ env.boost }}"
-          current_workflow_version[libtorrent_1_2]="${{ env.libtorrent_1_2 }}"
-          current_workflow_version[libtorrent_2_0]="${{ env.libtorrent_2_0 }}"
-          current_workflow_version[double_conversion]="${{ env.double_conversion }}"
-          current_workflow_version[qt5]="${{ env.qt5 }}"
-          current_workflow_version[qt6]="${{ env.qt6 }}"
-          current_workflow_version[qbittorrent]="${{ env.qbittorrent }}"
+          current_workflow_version[glibc]="${glibc_2_40}"
+          current_workflow_version[zlib]="${zlib}"
+          current_workflow_version[iconv]="${iconv}"
+          current_workflow_version[icu]="${icu}"
+          current_workflow_version[openssl]="${openssl}"
+          current_workflow_version[boost]="${boost}"
+          current_workflow_version[libtorrent_1_2]="${libtorrent_1_2}"
+          current_workflow_version[libtorrent_2_0]="${libtorrent_2_0}"
+          current_workflow_version[double_conversion]="${double_conversion}"
+          current_workflow_version[qt5]="${qt5}"
+          current_workflow_version[qt6]="${qt6}"
+          current_workflow_version[qbittorrent]="${qbittorrent}"
           -->
           CURRENT_WORKFLOW_VERSION
 
           cat >> "dependency-version.json" <<- CURRENT_WORKFLOW_VERSION_JSON
           {
-            "glibc": "${{ env.glibc_2_40 }}",
-            "zlib": "${{ env.zlib }}",
-            "iconv": "${{ env.iconv }}",
-            "icu": "${{ env.icu }}",
-            "openssl": "${{ env.openssl }}",
-            "boost": "${{ env.boost }}",
-            "libtorrent_1_2": "${{ env.libtorrent_1_2 }}",
-            "libtorrent_2_0": "${{ env.libtorrent_2_0 }}",
-            "double_conversion": "${{ env.double_conversion }}",
-            "qt5": "${{ env.qt5 }}",
-            "qt6": "${{ env.qt6 }}",
-            "qbittorrent": "${{ env.qbittorrent }}"
+            "glibc": "${glibc_2_40}",
+            "zlib": "${zlib}",
+            "iconv": "${iconv}",
+            "icu": "${icu}",
+            "openssl": "${openssl}",
+            "boost": "${boost}",
+            "libtorrent_1_2": "${libtorrent_1_2}",
+            "libtorrent_2_0": "${libtorrent_2_0}",
+            "double_conversion": "${double_conversion}",
+            "qt5": "${qt5}",
+            "qt6": "${qt6}",
+            "qbittorrent": "${qbittorrent}"
           }
           CURRENT_WORKFLOW_VERSION_JSON
 
@@ -295,18 +295,18 @@ jobs:
 
           Here are the latest dependency versions that have been released:
 
-          glibc: ${{ env.glibc_2_40 }}
-          zlib: ${{ env.zlib }}
-          iconv: ${{ env.iconv }}
-          icu: ${{ env.icu }}
-          openssl: ${{ env.openssl }}
-          boost: ${{ env.boost }}
-          libtorrent_1_2: ${{ env.libtorrent_1_2 }}
-          libtorrent_2_0: ${{ env.libtorrent_2_0 }}
-          double_conversion: ${{ env.double_conversion }}
-          qt5: ${{ env.qt5 }}
-          qt6: ${{ env.qt6 }}
-          qbittorrent: ${{ env.qbittorrent }}
+          glibc: ${glibc_2_40}
+          zlib: ${zlib}
+          iconv: ${iconv}
+          icu: ${icu}
+          openssl: ${openssl}
+          boost: ${boost}
+          libtorrent_1_2: ${libtorrent_1_2}
+          libtorrent_2_0: ${libtorrent_2_0}
+          double_conversion: ${double_conversion}
+          qt5: ${qt5}
+          qt6: ${qt6}
+          qbittorrent: ${qbittorrent}
           PUSHOVER_BODY_TEXT
 
       - name: Generate release asset attestation

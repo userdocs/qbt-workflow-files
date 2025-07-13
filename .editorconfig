@@ -34,4 +34,3 @@ indent_size = 4
 [*.{yml,yaml,html}]
 indent_style = space
 indent_size = 2
-
