@@ -44,10 +44,11 @@ jobs:
 
           curl -sL "${glibc_2_40_url}" > glibc.2.40.tar.xz
 
-      - name: zlib-ng
+      - name: zlib
         run: |
-          zlib_url="https://github.com/zlib-ng/zlib-ng.git"
-          zlib_version="$(curl -sL https://raw.githubusercontent.com/zlib-ng/zlib-ng/develop/zlib.h.in | sed -rn 's|#define ZLIB_VERSION "(.*)"|\1|p')" zlib_version=${zlib_version/.zlib-ng}
+          zlib_url="https://github.com/madler/zlib.git"
+          zlib_version="$(curl -sL https://raw.githubusercontent.com/madler/zlib/develop/zlib.h | sed -rn 's|#define ZLIB_VERSION "(.*)"|\1|p')"
+          zlib_version=${zlib_version/-*}
           echo "zlib=${zlib_version}" >> $GITHUB_ENV
 
           printf "%s\n" "| zlib | ${zlib_version} | ${zlib_url} |" >> body.md
@@ -55,6 +56,19 @@ jobs:
 
           git clone --single-branch --branch "develop" --shallow-submodules --recurse-submodules --depth 1 "${zlib_url}" zlib
           tar cJf zlib.tar.xz zlib
+
+      - name: zlib-ng
+        run: |
+          zlib_ng_url="https://github.com/zlib-ng/zlib-ng.git"
+          zlib_ng_version="$(curl -sL https://raw.githubusercontent.com/zlib-ng/zlib-ng/develop/zlib.h.in | sed -rn 's|#define ZLIB_VERSION "(.*)"|\1|p')"
+          zlib_ng_version=${zlib_ng_version/.zlib-ng}
+          echo "zlib=${zlib_ng_version}" >> $GITHUB_ENV
+
+          printf "%s\n" "| zlib-ng | ${zlib_ng_version} | ${zlib_ng_url} |" >> body.md
+          printf "${zlib_ng_version//\./}" >> tag_name.txt
+
+          git clone --single-branch --branch "develop" --shallow-submodules --recurse-submodules --depth 1 "${zlib_ng_url}" zlib-ng
+          tar cJf zlib-ng.tar.xz zlib-ng
 
       - name: iconv
         run: |
