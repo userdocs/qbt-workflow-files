@@ -34,15 +34,16 @@ jobs:
           printf "%s\n" "|  Dependency   | Version | Source URL | " > body.md
           printf "%s\n" "| :-----------: | :-----: | :--------: |" >> body.md
 
-      - name: glibc 2.40
+      - name: glibc 2.42
         run: |
-          glibc_2_40_url="https://ftp.gnu.org/gnu/libc/glibc-2.40.tar.xz"
-          echo "glibc_2_40=2.40" >> $GITHUB_ENV
+          glibc_version="2.42"
+          echo "glibc=${glibc_version}" >> $GITHUB_ENV
+          glibc_url="https://ftp.gnu.org/gnu/libc/glibc-${glibc_version}.tar.xz"
 
-          printf "%s\n" "| glibc | 2.40 | ${glibc_2_40_url} |" >> body.md
-          printf "240" > tag_name.txt
+          printf "%s\n" "| glibc | ${glibc_version} | ${glibc_url} |" >> body.md
+          printf "${glibc_version/\./}" > tag_name.txt
 
-          curl -sL "${glibc_2_40_url}" > glibc.2.40.tar.xz
+          curl -sL "${glibc_url}" > glibc.${glibc_version}.tar.xz
 
       - name: zlib
         run: |
@@ -259,7 +260,7 @@ jobs:
           cat >> "body.md" <<- CURRENT_WORKFLOW_VERSION
           <!--
           declare -A current_workflow_version
-          current_workflow_version[glibc]="${glibc_2_40}"
+          current_workflow_version[glibc]="${glibc}"
           current_workflow_version[zlib]="${zlib}"
           current_workflow_version[iconv]="${iconv}"
           current_workflow_version[icu]="${icu}"
@@ -276,7 +277,7 @@ jobs:
 
           cat >> "dependency-version.json" <<- CURRENT_WORKFLOW_VERSION_JSON
           {
-            "glibc": "${glibc_2_40}",
+            "glibc": "${glibc}",
             "zlib": "${zlib}",
             "iconv": "${iconv}",
             "icu": "${icu}",
@@ -295,7 +296,7 @@ jobs:
 
           Here are the latest dependency versions that have been released:
 
-          glibc: ${glibc_2_40}
+          glibc: ${glibc}
           zlib: ${zlib}
           iconv: ${iconv}
           icu: ${icu}
