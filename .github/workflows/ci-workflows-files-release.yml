@@ -22,7 +22,7 @@ jobs:
           persist-credentials: false
           ref: ${{ github.event.client_payload.sha }}
 
-      - run: echo using SHA ${SHA}
+      - run: printf "%s\n" "using SHA ${SHA}"
         env:
           SHA: ${{ github.event.client_payload.sha }}
 
@@ -34,47 +34,52 @@ jobs:
           printf "%s\n" "|  Dependency   | Version | Source URL | " > body.md
           printf "%s\n" "| :-----------: | :-----: | :--------: |" >> body.md
 
-      - name: glibc 2.40
+      - name: glibc
         run: |
-          glibc_2_40_url="https://ftp.gnu.org/gnu/libc/glibc-2.40.tar.xz"
-          echo "glibc_2_40=2.40" >> $GITHUB_ENV
+          glibc_version="$(curl -sL "https://ftp.gnu.org/gnu/glibc/?C=M;O=D"  | sed -n 's/.*glibc-\([0-9.]*\)\.tar\.xz\.sig.*/\1/p' | head -n1)"
+          printf "%s\n" "glibc=${glibc_version}" >> $GITHUB_ENV
+          glibc_url="https://ftp.gnu.org/gnu/libc/glibc-${glibc_version}.tar.xz"
 
-          printf "%s\n" "| glibc | 2.40 | ${glibc_2_40_url} |" >> body.md
-          printf "240" > tag_name.txt
+          printf "%s\n" "| glibc | ${glibc_version} | ${glibc_url} |" >> body.md
+          printf "${glibc_version/\./}" > tag_name.txt
 
-          curl -sL "${glibc_2_40_url}" > glibc.2.40.tar.xz
+          curl -sL "${glibc_url}" > glibc.${glibc_version}.tar.xz
 
       - name: zlib
         run: |
-          zlib_url="https://github.com/madler/zlib.git"
+          zlib_url="https://github.com/madler/zlib/archive/refs/heads/develop.tar.gz"
           zlib_version="$(curl -sL https://raw.githubusercontent.com/madler/zlib/develop/zlib.h | sed -rn 's|#define ZLIB_VERSION "(.*)"|\1|p')"
           zlib_version=${zlib_version/-*}
-          echo "zlib=${zlib_version}" >> $GITHUB_ENV
+          printf '%s\n' "zlib=${zlib_version}" >> $GITHUB_ENV
 
           printf "%s\n" "| zlib | ${zlib_version} | ${zlib_url} |" >> body.md
           printf "${zlib_version//\./}" >> tag_name.txt
 
-          git clone --single-branch --branch "develop" --shallow-submodules --recurse-submodules --depth 1 "${zlib_url}" zlib
-          tar cJf zlib.tar.xz zlib
+          curl -sLO "${zlib_url}"
+          tar xf develop.tar.gz
+          mv zlib-develop/ zlib-${zlib_version}
+          tar cJf zlib.tar.xz zlib-${zlib_version}
 
       - name: zlib-ng
         run: |
-          zlib_ng_url="https://github.com/zlib-ng/zlib-ng.git"
+          zlib_ng_url="https://github.com/zlib-ng/zlib-ng/archive/refs/heads/develop.tar.gz"
           zlib_ng_version="$(curl -sL https://raw.githubusercontent.com/zlib-ng/zlib-ng/develop/zlib.h.in | sed -rn 's|#define ZLIB_VERSION "(.*)"|\1|p')"
           zlib_ng_version=${zlib_ng_version/.zlib-ng}
-          echo "zlib=${zlib_ng_version}" >> $GITHUB_ENV
+          printf "%s\n" "zlib_ng=${zlib_ng_version}" >> $GITHUB_ENV
 
           printf "%s\n" "| zlib-ng | ${zlib_ng_version} | ${zlib_ng_url} |" >> body.md
           printf "${zlib_ng_version//\./}" >> tag_name.txt
 
-          git clone --single-branch --branch "develop" --shallow-submodules --recurse-submodules --depth 1 "${zlib_ng_url}" zlib-ng
-          tar cJf zlib-ng.tar.xz zlib-ng
+          curl -sLO "${zlib_ng_url}"
+          tar xf develop.tar.gz
+          mv zlib-ng-develop/ zlib-ng-${zlib_ng_version}
+          tar cJf zlib-ng.tar.xz zlib-ng-${zlib_ng_version}
 
       - name: iconv
         run: |
           iconv_url="https://ftp.gnu.org/gnu/libiconv/$(grep -Eo 'libiconv-([0-9]{1,3}[.]?)([0-9]{1,3}[.]?)([0-9]{1,3}?)\.tar.gz' <(curl -sL https://ftp.gnu.org/gnu/libiconv/) | sort -V | tail -1)"
           iconv_version="$(grep -Eo 'libiconv-([0-9]{1,3}[.]?)([0-9]{1,3}[.]?)([0-9]{1,3}?)\.tar.gz' <(curl -sL https://ftp.gnu.org/gnu/libiconv/) | sort -V | tail -1)" && iconv_version=${iconv_version/libiconv-} && iconv_version=${iconv_version/.tar.gz}
-          echo "iconv=${iconv_version}" >> $GITHUB_ENV
+          printf "%s\n" "iconv=${iconv_version}" >> $GITHUB_ENV
 
           printf "%s\n" "| iconv | ${iconv_version} | ${iconv_url} |" >> body.md
           printf "${iconv_version//\./}" >> tag_name.txt
@@ -87,7 +92,7 @@ jobs:
           icu_github_tag="$(git ls-remote -q -t --refs https://github.com/unicode-org/icu.git | awk '/\/release-/{sub("refs/tags/release-", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n 1)"
           icu_url="https://github.com/unicode-org/icu/releases/download/release-${icu_github_tag}/icu4c-${icu_github_tag/-/_}-src.tgz"
           icu_version="${icu_github_tag}"
-          echo "icu=${icu_github_tag}" >> $GITHUB_ENV
+          printf "%s\n" "icu=${icu_github_tag}" >> $GITHUB_ENV
 
           printf "%s\n" "| icu | ${icu_github_tag} | ${icu_url} |" >> body.md
           printf "${icu_version/-/}" >> tag_name.txt
@@ -100,7 +105,7 @@ jobs:
           openssl_url="https://github.com/openssl/openssl.git"
           openssl_github_tag="$(git ls-remote -q -t --refs "${openssl_url}" | awk '/openssl/{sub("refs/tags/", "");sub("(.*)(v6|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
           openssl_version="${openssl_github_tag#openssl-}"
-          echo "openssl=${openssl_version}" >> $GITHUB_ENV
+          printf "%s\n" "openssl=${openssl_version}" >> $GITHUB_ENV
 
           printf "%s\n" "| openssl | ${openssl_version} | ${openssl_url} |" >> body.md
           printf "${openssl_version//\./}" >> tag_name.txt
@@ -117,8 +122,8 @@ jobs:
         run: |
           boost_version="$(git ls-remote -q -t --refs https://github.com/boostorg/boost.git | awk '{sub("refs/tags/boost-", "");sub("(.*)(rc|alpha|beta|-bgl)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
 
-          if curl -sfLI "https://github.com/boostorg/boost/releases/latest/download/boost-${boost_version}-b2-nodocs.tar.xz"; then
-            boost_url="https://github.com/boostorg/boost/releases/latest/download/boost-${boost_version}-b2-nodocs.tar.xz" && boost_repack="false"
+          if curl -sfLI "https://github.com/boostorg/boost/releases/download/boost-${boost_version}/boost-${boost_version}-b2-nodocs.tar.xz"; then
+            boost_url="https://github.com/boostorg/boost/releases/download/boost-${boost_version}/boost-${boost_version}-b2-nodocs.tar.xz" && boost_repack="false"
           elif curl -sfLI "https://archives.boost.io/release/${boost_version}/source/boost_${boost_version//./_}.tar.gz" &> /dev/null; then
             boost_url="https://archives.boost.io/release/${boost_version}/source/boost_${boost_version//./_}.tar.gz"
           elif curl -sfLI "https://sourceforge.net/projects/boost/files/boost/${boost_version}/boost_${boost_version//./_}.tar.gz" &> /dev/null; then
@@ -130,7 +135,7 @@ jobs:
             exit 1
           fi
 
-          echo "boost=${boost_version}" >> $GITHUB_ENV
+          printf "%s\n" "boost=${boost_version}" >> $GITHUB_ENV
 
           printf "%s\n" "| boost | ${boost_version} | ${boost_url} |" >> body.md
           printf "${boost_version//\./}" >> tag_name.txt
@@ -147,7 +152,7 @@ jobs:
           libtorrent_1_2_url="https://github.com/arvidn/libtorrent.git"
           libtorrent_1_2_github_tag="$(git ls-remote -q -t --refs "${libtorrent_1_2_url}" | awk '/\/v1/{sub("refs/tags/", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
           libtorrent_1_2_version="${libtorrent_1_2_github_tag/v}"
-          echo "libtorrent_1_2=${libtorrent_1_2_version}" >> $GITHUB_ENV
+          printf "%s\n" "libtorrent_1_2=${libtorrent_1_2_version}" >> $GITHUB_ENV
 
           printf "%s\n" "| libtorrent_1_2 | ${libtorrent_1_2_version} | ${libtorrent_1_2_url} |" >> body.md
           printf "${libtorrent_1_2_version//\./}" >> tag_name.txt
@@ -160,7 +165,7 @@ jobs:
           libtorrent_2_0_url="https://github.com/arvidn/libtorrent.git"
           libtorrent_2_0_github_tag="$(git ls-remote -q -t --refs "${libtorrent_2_0_url}" | awk '/\/v2/{sub("refs/tags/", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
           libtorrent_2_0_version="${libtorrent_2_0_github_tag/v}"
-          echo "libtorrent_2_0=${libtorrent_2_0_version}" >> $GITHUB_ENV
+          printf "%s\n" "libtorrent_2_0=${libtorrent_2_0_version}" >> $GITHUB_ENV
 
           printf "%s\n" "| libtorrent_2_0 | ${libtorrent_2_0_version} | ${libtorrent_2_0_url} |" >> body.md
           printf "${libtorrent_2_0_version//\./}" >> tag_name.txt
@@ -173,7 +178,7 @@ jobs:
           double_conversion_url="https://github.com/google/double-conversion.git"
           double_conversion_github_tag="$(git ls-remote -q -t --refs "${double_conversion_url}" | awk '/v/{sub("refs/tags/", "");sub("(.*)(v6|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
           double_conversion_version="${double_conversion_github_tag/v}"
-          echo "double_conversion=${double_conversion_version}" >> $GITHUB_ENV
+          printf "%s\n" "double_conversion=${double_conversion_version}" >> $GITHUB_ENV
 
           printf "%s\n" "| double_conversion | ${double_conversion_version} | ${double_conversion_url} |" >> body.md
           printf "${double_conversion_version//\./}" >> tag_name.txt
@@ -186,7 +191,7 @@ jobs:
           qt5_github_tag="$(git ls-remote -q -t --refs https://github.com/qt/qtbase.git | awk '/v5(.*)-lts-lgpl/{sub("refs/tags/", ""); print $2 }' | sed 's/-lts-lgpl//g' | awk '!/^$/' | sort -rV | head -n1)"
           qt5_short="$(grep -Eom1 "v5.([0-9]{1,2})" <<< "${qt5_github_tag}")"
           qt5_version="${qt5_github_tag/v}"
-          echo "qt5=${qt5_version}" >> $GITHUB_ENV
+          printf "%s\n" "qt5=${qt5_version}" >> $GITHUB_ENV
 
           qt5base_url="https://master.qt.io/archive/qt/${qt5_short/v/}/${qt5_version}/submodules/qtbase-everywhere-opensource-src-${qt5_version}.tar.xz"
           qt5tools_url="https://master.qt.io/archive/qt/${qt5_short/v/}/${qt5_version}/submodules/qttools-everywhere-opensource-src-${qt5_version}.tar.xz"
@@ -216,7 +221,7 @@ jobs:
           qt6_github_tag="$(git ls-remote -q -t --refs "https://github.com/qt/qtbase.git" | awk '/v6/{sub("refs/tags/", ""); sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
           qt6_short="$(grep -Eom1 "v6.([0-9]{1,2})" <<< "${qt6_github_tag}")"
           qt6_version="${qt6_github_tag/v}"
-          echo "qt6=${qt6_version}" >> $GITHUB_ENV
+          printf "%s\n" "qt6=${qt6_version}" >> $GITHUB_ENV
 
           qt6base_url="https://master.qt.io/archive/qt/${qt6_short/v/}/${qt6_version}/submodules/qtbase-everywhere-src-${qt6_version}.tar.xz"
           qt6tools_url="https://master.qt.io/archive/qt/${qt6_short/v/}/${qt6_version}/submodules/qttools-everywhere-src-${qt6_version}.tar.xz"
@@ -246,7 +251,7 @@ jobs:
           qbittorrent_url="https://github.com/qbittorrent/qBittorrent.git"
           qbittorrent_github_tag="$(git ls-remote -q -t --refs "${qbittorrent_url}" | awk '{sub("refs/tags/", "");sub("(.*)(-[^0-9].*|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
           qbittorrent_version="${qbittorrent_github_tag/release-}"
-          echo "qbittorrent=${qbittorrent_version}" >> $GITHUB_ENV
+          printf "%s\n" "qbittorrent=${qbittorrent_version}" >> $GITHUB_ENV
 
           printf "%s\n\n" "| qbittorrent | ${qbittorrent_version} | ${qbittorrent_url} |" >> body.md
           printf "${qbittorrent_version//\./}" >> tag_name.txt
@@ -259,8 +264,9 @@ jobs:
           cat >> "body.md" <<- CURRENT_WORKFLOW_VERSION
           <!--
           declare -A current_workflow_version
-          current_workflow_version[glibc]="${glibc_2_40}"
+          current_workflow_version[glibc]="${glibc}"
           current_workflow_version[zlib]="${zlib}"
+          current_workflow_version[zlib_ng]="${zlib_ng}"
           current_workflow_version[iconv]="${iconv}"
           current_workflow_version[icu]="${icu}"
           current_workflow_version[openssl]="${openssl}"
@@ -276,8 +282,9 @@ jobs:
 
           cat >> "dependency-version.json" <<- CURRENT_WORKFLOW_VERSION_JSON
           {
-            "glibc": "${glibc_2_40}",
+            "glibc": "${glibc}",
             "zlib": "${zlib}",
+            "zlib_ng": "${zlib_ng}",
             "iconv": "${iconv}",
             "icu": "${icu}",
             "openssl": "${openssl}",
@@ -295,8 +302,9 @@ jobs:
 
           Here are the latest dependency versions that have been released:
 
-          glibc: ${glibc_2_40}
+          glibc: ${glibc}
           zlib: ${zlib}
+          zlib_ng: ${zlib_ng}
           iconv: ${iconv}
           icu: ${icu}
           openssl: ${openssl}
@@ -321,7 +329,7 @@ jobs:
           ./pandoc --wrap=preserve -f gfm body.md -t gfm -o release.md
 
       - name: Set tag via tag_name.txt
-        run: echo "github_release_tag=$(cat tag_name.txt)" >> $GITHUB_ENV
+        run: printf "%s\n" "github_release_tag=$(cat tag_name.txt)" >> $GITHUB_ENV
 
       - name: Host - "Create release - tag - assets"
         id: workflow_files_release
