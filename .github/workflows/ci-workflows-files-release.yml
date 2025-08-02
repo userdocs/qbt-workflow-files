@@ -32,7 +32,7 @@ jobs:
       - name: bootstrap
         run: |
           printf "%s\n" "|  Dependency   | Version | Source URL | " > body.md
-          printf "%s\n" "| :-----------: | :-----: | :--------: |" >> body.md
+          printf "%s\n" "| :------------ | :------ | :--------- |" >> body.md
 
       - name: glibc
         run: |
@@ -102,15 +102,15 @@ jobs:
 
       - name: openssl
         run: |
-          openssl_url="https://github.com/openssl/openssl.git"
-          openssl_github_tag="$(git ls-remote -q -t --refs "${openssl_url}" | awk '/openssl/{sub("refs/tags/", "");sub("(.*)(v6|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+          openssl_github_tag="$(git ls-remote -q -t --refs "https://github.com/openssl/openssl.git" | awk '/openssl/{sub("refs/tags/", "");sub("(.*)(v6|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
           openssl_version="${openssl_github_tag#openssl-}"
+          openssl_url="https://github.com/openssl/openssl/releases/download/${openssl_github_tag}/${openssl_github_tag}.tar.gz"
           printf "%s\n" "openssl=${openssl_version}" >> $GITHUB_ENV
 
           printf "%s\n" "| openssl | ${openssl_version} | ${openssl_url} |" >> body.md
           printf "${openssl_version//\./}" >> tag_name.txt
 
-          if [[ $(curl -o /dev/null -sLIw '%{http_code}' ""https://github.com/openssl/openssl/releases/download/${openssl_github_tag}/${openssl_github_tag}.tar.gz"") -eq '200' ]]; then
+          if [[ $(curl -o /dev/null -sLIw '%{http_code}' "https://github.com/openssl/openssl/releases/download/${openssl_github_tag}/${openssl_github_tag}.tar.gz") -eq '200' ]]; then
               openssl_dl_url="https://github.com/openssl/openssl/releases/download/${openssl_github_tag}/${openssl_github_tag}.tar.gz"
           else
               openssl_dl_url="https://github.com/openssl/openssl/archive/refs/tags/${openssl_github_tag}.tar.gz"
@@ -175,9 +175,9 @@ jobs:
 
       - name: double_conversion
         run: |
-          double_conversion_url="https://github.com/google/double-conversion.git"
-          double_conversion_github_tag="$(git ls-remote -q -t --refs "${double_conversion_url}" | awk '/v/{sub("refs/tags/", "");sub("(.*)(v6|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+          double_conversion_github_tag="$(git ls-remote -q -t --refs "https://github.com/google/double-conversion.git" | awk '/v/{sub("refs/tags/", "");sub("(.*)(v6|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
           double_conversion_version="${double_conversion_github_tag/v}"
+          double_conversion_url="https://github.com/google/double-conversion/archive/refs/tags/${double_conversion_github_tag}.tar.gz"
           printf "%s\n" "double_conversion=${double_conversion_version}" >> $GITHUB_ENV
 
           printf "%s\n" "| double_conversion | ${double_conversion_version} | ${double_conversion_url} |" >> body.md
@@ -248,16 +248,16 @@ jobs:
 
       - name: qbittorrent
         run: |
-          qbittorrent_url="https://github.com/qbittorrent/qBittorrent.git"
-          qbittorrent_github_tag="$(git ls-remote -q -t --refs "${qbittorrent_url}" | awk '{sub("refs/tags/", "");sub("(.*)(-[^0-9].*|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+          qbittorrent_github_tag="$(git ls-remote -q -t --refs "https://github.com/qbittorrent/qBittorrent.git" | awk '{sub("refs/tags/", "");sub("(.*)(-[^0-9].*|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
           qbittorrent_version="${qbittorrent_github_tag/release-}"
+          qbittorrent_url="https://github.com/qbittorrent/qBittorrent/archive/refs/tags/${qbittorrent_github_tag}.tar.gz"
           printf "%s\n" "qbittorrent=${qbittorrent_version}" >> $GITHUB_ENV
 
           printf "%s\n\n" "| qbittorrent | ${qbittorrent_version} | ${qbittorrent_url} |" >> body.md
           printf "${qbittorrent_version//\./}" >> tag_name.txt
 
-          git clone --single-branch --branch "${qbittorrent_github_tag}" --shallow-submodules --recurse-submodules --depth 1 "${qbittorrent_url}" qbittorrent
-          tar cJf qbittorrent.tar.xz qbittorrent
+          curl -sL "${qbittorrent_url}" > qbittorrent.tar.gz
+          gunzip -c < qbittorrent.tar.gz | xz -c > qbittorrent.tar.xz
 
       - name: Create current_workflow_version array
         run: |
