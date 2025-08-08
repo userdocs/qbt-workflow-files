@@ -17,7 +17,7 @@ jobs:
     env:
       XZ_OPT: "-9T0"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           persist-credentials: false
           ref: ${{ github.event.client_payload.sha }}
@@ -333,7 +333,7 @@ jobs:
 
       - name: Host - "Create release - tag - assets"
         id: workflow_files_release
-        uses: ncipollo/release-action@v1
+        uses: ncipollo/release-action@bcfe5470707e8832e12347755757cec0eb3c22af # v1
         with:
           prerelease: false
           makeLatest: true

@@ -50,7 +50,7 @@ jobs:
       contents: read
     steps:
       - id: skip_check
-        uses: fkirc/skip-duplicate-actions@v5
+        uses: fkirc/skip-duplicate-actions@f75f66ce1886f00957d99748a42c724f4330bdcf # v5
         with:
           concurrent_skipping: "always"
           cancel_others: "false"
@@ -161,7 +161,7 @@ jobs:
       run-id: ${{ steps.run-id.outputs.run-id }}
     steps:
       - name: Dispatch an action and get the run ID
-        uses: codex-/return-dispatch@v2
+        uses: codex-/return-dispatch@72a3b5d4ff36e4319a7b1ab5b686c778ee02fa37 # v2
         id: return-dispatch-id
         with:
           token: ${{ secrets.MYTOKEN }}
@@ -196,7 +196,7 @@ jobs:
       actions: write
     steps:
       - name: Await Run ID ${{ needs.ci-trigger-qbittorrent-nox-build.outputs.run-id }}
-        uses: Codex-/await-remote-run@v1
+        uses: Codex-/await-remote-run@a56c556e6434d2d7ec9438dc656143b39532324e # v1
         id: await_remote_build_run
         with:
           token: ${{ secrets.MYTOKEN }}
@@ -234,7 +234,7 @@ jobs:
       retries: ${{ needs.scheduled_defaults.outputs.retries || '3' }}
       distinct_id: ${{ github.event.inputs.distinct_id }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           persist-credentials: false
       - name: ci-auto-rerun-failed-jobs via ${{ env.github_repo || github.repository }}
