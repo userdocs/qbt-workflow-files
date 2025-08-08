@@ -8,6 +8,14 @@ repos:
       - id: trailing-whitespace
       - id: check-shebang-scripts-are-executable
 
+  - repo: local
+    hooks:
+      - id: pre-commit-autoupdate
+        name: Update pre-commit hooks
+        entry: pwsh -c "pre-commit autoupdate; git add .pre-commit-config.yaml"
+        language: system
+        pass_filenames: false
+
   - repo: https://github.com/woodruffw/zizmor-pre-commit
     rev: v1.11.0
     hooks:
