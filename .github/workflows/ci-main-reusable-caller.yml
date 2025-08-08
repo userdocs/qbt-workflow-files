@@ -196,7 +196,7 @@ jobs:
       actions: write
     steps:
       - name: Await Run ID ${{ needs.ci-trigger-qbittorrent-nox-build.outputs.run-id }}
-        uses: Codex-/await-remote-run@a56c556e6434d2d7ec9438dc656143b39532324e # v1
+        uses: Codex-/await-remote-run@a56c556e6434d2d7ec9438dc656143b39532324e # v1.13.0
         id: await_remote_build_run
         with:
           token: ${{ secrets.MYTOKEN }}
