@@ -318,7 +318,7 @@ jobs:
           PUSHOVER_BODY_TEXT
 
       - name: Generate release asset attestation
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2.4.0
         with:
           subject-path: "*.tar.xz"
 
