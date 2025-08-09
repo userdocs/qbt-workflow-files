@@ -333,7 +333,7 @@ jobs:
 
       - name: Host - "Create release - tag - assets"
         id: workflow_files_release
-        uses: ncipollo/release-action@bcfe5470707e8832e12347755757cec0eb3c22af # v1
+        uses: ncipollo/release-action@bcfe5470707e8832e12347755757cec0eb3c22af # v1.18.0
         with:
           prerelease: false
           makeLatest: true
