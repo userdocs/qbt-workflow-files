@@ -68,7 +68,7 @@ jobs:
       workflow_files_release_only: ${{ github.event.inputs.workflow_files_release_only || 'false' }}
       skip_workflow_files_release: ${{ github.event.inputs.skip_workflow_files_release || 'false' }}
       skip_rerun: ${{ github.event.inputs.skip_rerun || 'false' }}
-      retries: ${{ github.event.inputs.retries || '3' }}
+      retries: ${{ github.event.inputs.retries || '1' }}
     steps:
       - name: Setting Outputs from inputs
         run: |
