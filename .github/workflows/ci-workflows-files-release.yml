@@ -90,7 +90,7 @@ jobs:
       - name: icu
         run: |
           icu_github_tag="$(git ls-remote -q -t --refs https://github.com/unicode-org/icu.git | awk '/\/release-/{sub("refs/tags/release-", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/ && !/rc/ && /^[0-9]+[-.]?[0-9]+[-.]?[0-9]*$/' | sort -rV | head -n 1)"
-          icu_url="https://github.com/unicode-org/icu/releases/download/release-${icu_github_tag}/icu4c-${icu_github_tag/-/_}-src.tgz"
+          icu_url="https://github.com/unicode-org/icu/releases/download/release-${icu_github_tag}/icu4c-${icu_github_tag/-/_}-sources.tgz"
           icu_version="${icu_github_tag}"
           printf "%s\n" "icu=${icu_github_tag}" >> $GITHUB_ENV
 
