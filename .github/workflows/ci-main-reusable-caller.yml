@@ -161,7 +161,7 @@ jobs:
       run-id: ${{ steps.run-id.outputs.run-id }}
     steps:
       - name: Dispatch an action and get the run ID
-        uses: codex-/return-dispatch@be07aaa981b76aca2b080c5e17604f59d85c06bf # v3.0.0
+        uses: codex-/return-dispatch@2277c7e64ca38a7350b95cfec2d6715ccebb7108 # v3.0.1
         id: return-dispatch-id
         with:
           token: ${{ secrets.MYTOKEN }}
