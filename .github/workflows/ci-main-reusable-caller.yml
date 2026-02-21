@@ -157,57 +157,23 @@ jobs:
     runs-on: ubuntu-24.04-arm
     permissions:
       actions: write
-    outputs:
-      run-id: ${{ steps.run-id.outputs.run-id }}
     steps:
-      - name: Dispatch an action and get the run ID
-        uses: codex-/return-dispatch@2277c7e64ca38a7350b95cfec2d6715ccebb7108 # v3.0.1
-        id: return-dispatch-id
-        with:
-          token: ${{ secrets.MYTOKEN }}
-          ref: ${{ needs.scheduled_defaults.outputs.test_repo_branch }}
-          repo: ${{ needs.scheduled_defaults.outputs.use_test_repo }}
-          owner: userdocs
-          workflow_inputs: '{ "skip_rerun": "false", "retries": "3" }'
-          workflow: ci-main-reusable-caller.yml
-          workflow_timeout_seconds: 300
-
-      - name: return-dispatch-id to output
-        id: run-id
+      - name: Dispatch an action and watch the run ID
         env:
-          run_id: ${{ steps.return-dispatch-id.outputs.run_id }}
-        run: printf '%s\n' "run-id=${run_id}" >> $GITHUB_OUTPUT
+          GH_TOKEN: ${{ secrets.MYTOKEN }}
+          use_test_repo: ${{ needs.scheduled_defaults.outputs.use_test_repo }}
+        run: |
+          # only need this until runners have v2.87+
+          gh_ver=$(curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/cli/cli/releases/latest); gh_ver="${gh_ver##*/}"; gh_ver=${gh_ver/#v/}
+          curl -sLo- https://github.com/cli/cli/releases/download/v${gh_ver}/gh_${gh_ver}_linux_arm64.tar.gz | tar xzf - --strip-components=1 -C ~/
+          chmod +x ~/bin/gh
+          ~/bin/gh --version
 
-  ci-await-qbittorrent-nox-build:
-    if: >
-      always() && !failure() && !cancelled() &&
-      needs.skip_duplicate_job.outputs.should_skip != 'true' &&
-      needs.ci-workflow-vs-current-builds.outputs.build-qbittorrent-nox == 'true' &&
-      needs.scheduled_defaults.outputs.workflow_files_release_only != 'true'
-    needs:
-      [
-        skip_duplicate_job,
-        scheduled_defaults,
-        ci-workflow-vs-current-builds,
-        ci-trigger-qbittorrent-nox-build,
-      ]
-    runs-on: ubuntu-24.04-arm
-    permissions:
-      actions: write
-    steps:
-      - name: Await Run ID ${{ needs.ci-trigger-qbittorrent-nox-build.outputs.run-id }}
-        uses: Codex-/await-remote-run@a56c556e6434d2d7ec9438dc656143b39532324e # v1.13.0
-        id: await_remote_build_run
-        with:
-          token: ${{ secrets.MYTOKEN }}
-          repo: ${{ needs.scheduled_defaults.outputs.use_test_repo }}
-          owner: userdocs
-          run_id: ${{ needs.ci-trigger-qbittorrent-nox-build.outputs.run-id }}
-          run_timeout_seconds: 7200
-          poll_interval_ms: 10000
+          # The basic idea now
+          run_url=$(~/bin/gh workflow run ci-main-reusable-caller.yml --repo userdocs/${use_test_repo} -f skip_rerun=false -f retries=3)
+          ~/bin/gh run watch "${run_url##*/}" --repo userdocs/${use_test_repo} --exit-status --compact --interval 30
 
       - name: Pushover notification qbt static build
-        if: steps.await_remote_build_run.outcome == 'success'
         run: curl -4s -d message="New dependency versions have been built" -d title="qbt static has been rebuilt" -d token="${{ secrets.PUSHOVER_API_TOKEN }}" -d user="${{ secrets.PUSHOVER_USER_KEY }}" 'https://api.pushover.net/1/messages.json'
 
   ci-auto-rerun-failed-jobs:
@@ -220,7 +186,6 @@ jobs:
         ci-workflows-files-release,
         ci-workflow-vs-current-builds,
         ci-trigger-qbittorrent-nox-build,
-        ci-await-qbittorrent-nox-build,
       ]
     concurrency:
       group: ci-auto-rerun-failed-jobs
