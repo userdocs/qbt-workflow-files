@@ -336,7 +336,7 @@ jobs:
         id: workflow_files_release
         env:
           GH_TOKEN: "${{ github.TOKEN }}"
-          release_title: "Workflow files for qBittorrent ${qbittorrent}"
+          release_title: "Workflow files for qbittorrent-nox static builds"
         run: |
           if git ls-remote --exit-code --tags origin "refs/tags/${release_tag}" >/dev/null 2>&1; then
             gh release edit "${release_tag}" \
