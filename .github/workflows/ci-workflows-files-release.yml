@@ -11,6 +11,7 @@ on:
 jobs:
   workflows-files-release:
     runs-on: ubuntu-24.04-arm
+    environment: production
     defaults:
       run:
         shell: bash
@@ -53,7 +54,7 @@ jobs:
           printf '%s\n' "zlib=${zlib_version}" >> $GITHUB_ENV
 
           printf "%s\n" "| zlib | ${zlib_version} | ${zlib_url} |" >> body.md
-          printf "${zlib_version//\./}" >> tag_name.txt
+          printf "${zlib_version//[-._]}" >> tag_name.txt
 
           curl -sLO "${zlib_url}"
           tar xf develop.tar.gz
@@ -68,7 +69,7 @@ jobs:
           printf "%s\n" "zlib_ng=${zlib_ng_version}" >> $GITHUB_ENV
 
           printf "%s\n" "| zlib-ng | ${zlib_ng_version} | ${zlib_ng_url} |" >> body.md
-          printf "${zlib_ng_version//\./}" >> tag_name.txt
+          printf "${zlib_ng_version//[-._]}" >> tag_name.txt
 
           curl -sLO "${zlib_ng_url}"
           tar xf develop.tar.gz
@@ -82,7 +83,7 @@ jobs:
           printf "%s\n" "iconv=${iconv_version}" >> $GITHUB_ENV
 
           printf "%s\n" "| iconv | ${iconv_version} | ${iconv_url} |" >> body.md
-          printf "${iconv_version//\./}" >> tag_name.txt
+          printf "${iconv_version//[-._]}" >> tag_name.txt
 
           curl -sL "$iconv_url" > iconv.tar.gz
           gunzip -c < iconv.tar.gz | xz -c > iconv.tar.xz
@@ -95,7 +96,7 @@ jobs:
           printf "%s\n" "icu=${icu_github_tag}" >> $GITHUB_ENV
 
           printf "%s\n" "| icu | ${icu_github_tag} | ${icu_url} |" >> body.md
-          printf "${icu_version/-/}" >> tag_name.txt
+          printf "${icu_version//[-.]}" >> tag_name.txt
 
           curl -sL "$icu_url" > icu.tgz
           gunzip -c < icu.tgz | xz -c > icu.tar.xz
@@ -108,7 +109,7 @@ jobs:
           printf "%s\n" "openssl=${openssl_version}" >> $GITHUB_ENV
 
           printf "%s\n" "| openssl | ${openssl_version} | ${openssl_url} |" >> body.md
-          printf "${openssl_version//\./}" >> tag_name.txt
+          printf "${openssl_version//[-._]}" >> tag_name.txt
 
           if [[ $(curl -o /dev/null -sLIw '%{http_code}' "https://github.com/openssl/openssl/releases/download/${openssl_github_tag}/${openssl_github_tag}.tar.gz") -eq '200' ]]; then
               openssl_dl_url="https://github.com/openssl/openssl/releases/download/${openssl_github_tag}/${openssl_github_tag}.tar.gz"
@@ -138,7 +139,7 @@ jobs:
           printf "%s\n" "boost=${boost_version}" >> $GITHUB_ENV
 
           printf "%s\n" "| boost | ${boost_version} | ${boost_url} |" >> body.md
-          printf "${boost_version//\./}" >> tag_name.txt
+          printf "${boost_version//[-._]}" >> tag_name.txt
 
           if [[ -z "$boost_repack" ]]; then
               curl -sL "$boost_url" > boost.tar.gz
@@ -155,7 +156,7 @@ jobs:
           printf "%s\n" "libtorrent_1_2=${libtorrent_1_2_version}" >> $GITHUB_ENV
 
           printf "%s\n" "| libtorrent_1_2 | ${libtorrent_1_2_version} | ${libtorrent_1_2_url} |" >> body.md
-          printf "${libtorrent_1_2_version//\./}" >> tag_name.txt
+          printf "${libtorrent_1_2_version//[-._]}" >> tag_name.txt
 
           git clone --single-branch --branch "${libtorrent_1_2_github_tag}" --shallow-submodules --recurse-submodules --depth 1 "${libtorrent_1_2_url}" libtorrent_${libtorrent_1_2_version}
           tar cJf libtorrent.${libtorrent_1_2_version}.tar.xz libtorrent_${libtorrent_1_2_version}
@@ -168,7 +169,7 @@ jobs:
           printf "%s\n" "libtorrent_2_0=${libtorrent_2_0_version}" >> $GITHUB_ENV
 
           printf "%s\n" "| libtorrent_2_0 | ${libtorrent_2_0_version} | ${libtorrent_2_0_url} |" >> body.md
-          printf "${libtorrent_2_0_version//\./}" >> tag_name.txt
+          printf "${libtorrent_2_0_version//[-._]}" >> tag_name.txt
 
           git clone --single-branch --branch "${libtorrent_2_0_github_tag}" --shallow-submodules --recurse-submodules --depth 1 "${libtorrent_2_0_url}" libtorrent_${libtorrent_2_0_version}
           tar cJf libtorrent.${libtorrent_2_0_version}.tar.xz libtorrent_${libtorrent_2_0_version}
@@ -181,7 +182,7 @@ jobs:
           printf "%s\n" "double_conversion=${double_conversion_version}" >> $GITHUB_ENV
 
           printf "%s\n" "| double_conversion | ${double_conversion_version} | ${double_conversion_url} |" >> body.md
-          printf "${double_conversion_version//\./}" >> tag_name.txt
+          printf "${double_conversion_version//[-._]}" >> tag_name.txt
 
           curl -sL "https://github.com/google/double-conversion/archive/refs/tags/${double_conversion_github_tag}.tar.gz" > double_conversion.tar.gz
           gunzip -c < double_conversion.tar.gz | xz -c > double_conversion.tar.xz
@@ -214,7 +215,7 @@ jobs:
 
           printf "%s\n" "| qt5base | ${qt5_version} | ${qt5base_url} |" >> body.md
           printf "%s\n" "| qt5tools | ${qt5_version} | ${qt5tools_url} |" >> body.md
-          printf "${qt5_version//\./}" >> tag_name.txt
+          printf "${qt5_version//[-._]}" >> tag_name.txt
 
       - name: qt6
         run: |
@@ -244,7 +245,7 @@ jobs:
 
           printf "%s\n" "| qt6base | ${qt6_version} | ${qt6base_url} |" >> body.md
           printf "%s\n" "| qt6tools | ${qt6_version} | ${qt6tools_url} |" >> body.md
-          printf "${qt6_version//\./}" >> tag_name.txt
+          printf "${qt6_version//[-._]}" >> tag_name.txt
 
       - name: qbittorrent
         run: |
@@ -254,7 +255,7 @@ jobs:
           printf "%s\n" "qbittorrent=${qbittorrent_version}" >> $GITHUB_ENV
 
           printf "%s\n\n" "| qbittorrent | ${qbittorrent_version} | ${qbittorrent_url} |" >> body.md
-          printf "${qbittorrent_version//\./}" >> tag_name.txt
+          printf "${qbittorrent_version//[-._]}" >> tag_name.txt
 
           curl -sL "${qbittorrent_url}" > qbittorrent.tar.gz
           gunzip -c < qbittorrent.tar.gz | xz -c > qbittorrent.tar.xz
@@ -329,21 +330,29 @@ jobs:
           ./pandoc --wrap=preserve -f gfm body.md -t gfm -o release.md
 
       - name: Set tag via tag_name.txt
-        run: printf "%s\n" "github_release_tag=$(cat tag_name.txt)" >> $GITHUB_ENV
+        run: printf "%s\n" "release_tag=$(cat tag_name.txt)" >> $GITHUB_ENV
 
       - name: Host - "Create release - tag - assets"
         id: workflow_files_release
-        uses: ncipollo/release-action@339a81892b84b4eeb0f6e744e4574d79d0d9b8dd # v1.21.0
-        with:
-          prerelease: false
-          makeLatest: true
-          artifacts: "*.tar.xz,dependency-version.json"
-          replacesArtifacts: true
-          tag: "${{ env.github_release_tag }}"
-          name: "Files to be reused in qbt static matrix builds"
-          bodyFile: release.md
-          allowUpdates: true
-          token: "${{ github.token }}"
+        env:
+          GH_TOKEN: "${{ github.TOKEN }}"
+          release_title: "Workflow files for qBittorrent ${qbittorrent}"
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/${release_tag}" >/dev/null 2>&1; then
+            gh release edit "${release_tag}" \
+              --title "${release_title}" \
+              --notes-file release.md \
+              --latest
+            gh release upload "${release_tag}" \
+              --clobber \
+              *.tar.xz dependency-version.json
+          else
+            gh release create "${release_tag}" \
+              --title "${release_title}" \
+              --notes-file release.md \
+              --latest \
+              *.tar.xz dependency-version.json
+          fi
 
       - name: Pushover notification workflows
         if: steps.workflow_files_release.outcome == 'success'
