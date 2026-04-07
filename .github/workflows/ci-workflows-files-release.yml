@@ -48,9 +48,9 @@ jobs:
 
       - name: zlib
         run: |
-          zlib_github_tag="$(git ls-remote -q -t --refs "https://github.com/madler/zlib.git" | awk '//{sub("refs/tags/", ""); sub("-[^0-9].*", ""); print $2}' | awk '!/^$/ && !/rc/ && /^v[0-9]+[-.]?[0-9]+[-.]?[0-9][-.]?[0-9]*$/' | sort -rV | head -n1)""
+          zlib_github_tag="$(git ls-remote -q -t --refs "https://github.com/madler/zlib.git" | awk '//{sub("refs/tags/", ""); sub("-[^0-9].*", ""); print $2}' | awk '!/^$/ && !/rc/ && /^v[0-9]+[-.]?[0-9]+[-.]?[0-9][-.]?[0-9]*$/' | sort -rV | head -n1)"
           zlib_version="${zlib_github_tag#v}"
-          zlib_url=="https://github.com/madler/zlib/releases/download/v${zlib_version}/zlib-${zlib_version}.tar.gz"
+          zlib_url="https://github.com/madler/zlib/releases/download/v${zlib_version}/zlib-${zlib_version}.tar.gz"
           printf '%s\n' "zlib=${zlib_version}" >> $GITHUB_ENV
 
           printf "%s\n" "| zlib | ${zlib_version} | ${zlib_url} |" >> body.md
