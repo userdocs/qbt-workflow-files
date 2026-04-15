@@ -31,6 +31,10 @@ jobs:
           current_github_tag[openssl]="$(git ls-remote -q -t --refs "https://github.com/openssl/openssl.git" | awk '/openssl/{sub("refs/tags/openssl-", "");sub("(.*)(v6|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
           CURRENT_GITHUB_TAG
 
+          if [[ -f "overrides" ]]; then
+            cat "overrides" >> "current_github_tag.sh"
+          fi
+
       - name: bootstrap current_workflow_version array values to file
         run: |
           until curl -sLf "https://github.com/userdocs/qbt-workflow-files/releases/latest/download/dependency-version.json" > current_workflow_version.json; do

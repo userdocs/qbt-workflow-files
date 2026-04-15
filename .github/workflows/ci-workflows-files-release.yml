@@ -27,6 +27,16 @@ jobs:
         env:
           SHA: ${{ github.event.client_payload.sha }}
 
+      - name: process overrides
+        run: |
+          if [[ -f "overrides" ]]; then
+            declare -A current_github_tag
+            source overrides
+            for key in "${!current_github_tag[@]}"; do
+              printf "%s_override=%s\n" "${key}" "${current_github_tag[$key]}" >> "$GITHUB_ENV"
+            done
+          fi
+
       - name: bootstrap latest release dependency-version.json
         run: curl -sL "https://github.com/userdocs/qbt-workflow-files/releases/latest/download/dependency-version.json" -o dv.json
 
@@ -37,7 +47,11 @@ jobs:
 
       - name: glibc
         run: |
-          glibc_version="$(curl -sL "https://ftp.gnu.org/gnu/glibc/?C=M;O=D"  | sed -n 's/.*glibc-\([0-9.]*\)\.tar\.xz\.sig.*/\1/p' | head -n1)"
+          if [[ -n "${glibc_override}" ]]; then
+              glibc_version="${glibc_override}"
+          else
+              glibc_version="$(curl -sL "https://ftp.gnu.org/gnu/glibc/?C=M;O=D"  | sed -n 's/.*glibc-\([0-9.]*\)\.tar\.xz\.sig.*/\1/p' | head -n1)"
+          fi
           printf "%s\n" "glibc=${glibc_version}" >> $GITHUB_ENV
           glibc_url="https://ftp.gnu.org/gnu/libc/glibc-${glibc_version}.tar.xz"
 
@@ -48,8 +62,12 @@ jobs:
 
       - name: zlib
         run: |
-          zlib_github_tag="$(git ls-remote -q -t --refs "https://github.com/madler/zlib.git" | awk '//{sub("refs/tags/", ""); sub("-[^0-9].*", ""); print $2}' | awk '!/^$/ && !/rc/ && /^v[0-9]+[-.]?[0-9]+[-.]?[0-9][-.]?[0-9]*$/' | sort -rV | head -n1)"
-          zlib_version="${zlib_github_tag#v}"
+          if [[ -n "${zlib_override}" ]]; then
+              zlib_version="${zlib_override}"
+          else
+              zlib_github_tag="$(git ls-remote -q -t --refs "https://github.com/madler/zlib.git" | awk '//{sub("refs/tags/", ""); sub("-[^0-9].*", ""); print $2}' | awk '!/^$/ && !/rc/ && /^v[0-9]+[-.]?[0-9]+[-.]?[0-9][-.]?[0-9]*$/' | sort -rV | head -n1)"
+              zlib_version="${zlib_github_tag#v}"
+          fi
           zlib_url="https://github.com/madler/zlib/releases/download/v${zlib_version}/zlib-${zlib_version}.tar.gz"
           printf '%s\n' "zlib=${zlib_version}" >> $GITHUB_ENV
 
@@ -61,23 +79,38 @@ jobs:
 
       - name: zlib-ng
         run: |
-          zlib_ng_url="https://github.com/zlib-ng/zlib-ng/archive/refs/heads/develop.tar.gz"
-          zlib_ng_version="$(curl -sL https://raw.githubusercontent.com/zlib-ng/zlib-ng/develop/zlib.h.in | sed -rn 's|#define ZLIB_VERSION "(.*)"|\1|p')"
-          zlib_ng_version=${zlib_ng_version/.zlib-ng}
+          if [[ -n "${zlib_ng_override}" ]]; then
+              zlib_ng_version="${zlib_ng_override}"
+              zlib_ng_url="https://github.com/zlib-ng/zlib-ng/archive/refs/tags/${zlib_ng_version}.tar.gz"
+          else
+              zlib_ng_url="https://github.com/zlib-ng/zlib-ng/archive/refs/heads/develop.tar.gz"
+              zlib_ng_version="$(curl -sL https://raw.githubusercontent.com/zlib-ng/zlib-ng/develop/zlib.h.in | sed -rn 's|#define ZLIB_VERSION "(.*)"|\1|p')"
+              zlib_ng_version=${zlib_ng_version/.zlib-ng}
+          fi
           printf "%s\n" "zlib_ng=${zlib_ng_version}" >> $GITHUB_ENV
 
           printf "%s\n" "| zlib-ng | ${zlib_ng_version} | ${zlib_ng_url} |" >> body.md
           printf "${zlib_ng_version//[-._]}" >> tag_name.txt
 
-          curl -sLO "${zlib_ng_url}"
-          tar xf develop.tar.gz
-          mv zlib-ng-develop/ zlib-ng-${zlib_ng_version}
-          tar cJf zlib-ng.tar.xz zlib-ng-${zlib_ng_version}
+          if [[ -n "${zlib_ng_override}" ]]; then
+              curl -sL "${zlib_ng_url}" -o "zlib-ng.tar.gz"
+              tar xf "zlib-ng.tar.gz"
+              tar cJf zlib-ng.tar.xz zlib-ng-${zlib_ng_version}
+          else
+              curl -sLO "${zlib_ng_url}"
+              tar xf develop.tar.gz
+              mv zlib-ng-develop/ zlib-ng-${zlib_ng_version}
+              tar cJf zlib-ng.tar.xz zlib-ng-${zlib_ng_version}
+          fi
 
       - name: iconv
         run: |
-          iconv_url="https://ftp.gnu.org/gnu/libiconv/$(grep -Eo 'libiconv-([0-9]{1,3}[.]?)([0-9]{1,3}[.]?)([0-9]{1,3}?)\.tar.gz' <(curl -sL https://ftp.gnu.org/gnu/libiconv/) | sort -V | tail -1)"
-          iconv_version="$(grep -Eo 'libiconv-([0-9]{1,3}[.]?)([0-9]{1,3}[.]?)([0-9]{1,3}?)\.tar.gz' <(curl -sL https://ftp.gnu.org/gnu/libiconv/) | sort -V | tail -1)" && iconv_version=${iconv_version/libiconv-} && iconv_version=${iconv_version/.tar.gz}
+          if [[ -n "${iconv_override}" ]]; then
+              iconv_version="${iconv_override}"
+          else
+              iconv_version="$(grep -Eo 'libiconv-([0-9]{1,3}[.]?)([0-9]{1,3}[.]?)([0-9]{1,3}?)\.tar.gz' <(curl -sL https://ftp.gnu.org/gnu/libiconv/) | sort -V | tail -1)" && iconv_version=${iconv_version/libiconv-} && iconv_version=${iconv_version/.tar.gz}
+          fi
+          iconv_url="https://ftp.gnu.org/gnu/libiconv/libiconv-${iconv_version}.tar.gz"
           printf "%s\n" "iconv=${iconv_version}" >> $GITHUB_ENV
 
           printf "%s\n" "| iconv | ${iconv_version} | ${iconv_url} |" >> body.md
@@ -88,7 +121,11 @@ jobs:
 
       - name: icu
         run: |
-          icu_github_tag="$(git ls-remote -q -t --refs https://github.com/unicode-org/icu.git | awk '/\/release-/{sub("refs/tags/release-", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/ && !/rc/ && /^[0-9]+[-.]?[0-9]+[-.]?[0-9]*$/' | sort -rV | head -n 1)"
+          if [[ -n "${icu_override}" ]]; then
+              icu_github_tag="${icu_override}"
+          else
+              icu_github_tag="$(git ls-remote -q -t --refs https://github.com/unicode-org/icu.git | awk '/\/release-/{sub("refs/tags/release-", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/ && !/rc/ && /^[0-9]+[-.]?[0-9]+[-.]?[0-9]*$/' | sort -rV | head -n 1)"
+          fi
           icu_url="https://github.com/unicode-org/icu/releases/download/release-${icu_github_tag}/icu4c-${icu_github_tag/-/_}-sources.tgz"
           icu_version="${icu_github_tag}"
           printf "%s\n" "icu=${icu_github_tag}" >> $GITHUB_ENV
@@ -101,8 +138,13 @@ jobs:
 
       - name: openssl
         run: |
-          openssl_github_tag="$(git ls-remote -q -t --refs "https://github.com/openssl/openssl.git" | awk '/openssl/{sub("refs/tags/", "");sub("(.*)(v6|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
-          openssl_version="${openssl_github_tag#openssl-}"
+          if [[ -n "${openssl_override}" ]]; then
+              openssl_github_tag="openssl-${openssl_override}"
+              openssl_version="${openssl_override}"
+          else
+              openssl_github_tag="$(git ls-remote -q -t --refs "https://github.com/openssl/openssl.git" | awk '/openssl/{sub("refs/tags/", "");sub("(.*)(v6|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+              openssl_version="${openssl_github_tag#openssl-}"
+          fi
           openssl_url="https://github.com/openssl/openssl/releases/download/${openssl_github_tag}/${openssl_github_tag}.tar.gz"
           printf "%s\n" "openssl=${openssl_version}" >> $GITHUB_ENV
 
@@ -119,7 +161,11 @@ jobs:
           gunzip -c < openssl.tar.gz | xz -c > openssl.tar.xz
       - name: boost
         run: |
-          boost_version="$(git ls-remote -q -t --refs https://github.com/boostorg/boost.git | awk '{sub("refs/tags/boost-", "");sub("(.*)(rc|alpha|beta|-bgl)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+          if [[ -n "${boost_override}" ]]; then
+              boost_version="${boost_override}"
+          else
+              boost_version="$(git ls-remote -q -t --refs https://github.com/boostorg/boost.git | awk '{sub("refs/tags/boost-", "");sub("(.*)(rc|alpha|beta|-bgl)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+          fi
 
           if curl -sfLI "https://github.com/boostorg/boost/releases/download/boost-${boost_version}/boost-${boost_version}-b2-nodocs.tar.xz"; then
             boost_url="https://github.com/boostorg/boost/releases/download/boost-${boost_version}/boost-${boost_version}-b2-nodocs.tar.xz" && boost_repack="false"
@@ -149,8 +195,13 @@ jobs:
       - name: libtorrent 1.2
         run: |
           libtorrent_1_2_url="https://github.com/arvidn/libtorrent.git"
-          libtorrent_1_2_github_tag="$(git ls-remote -q -t --refs "${libtorrent_1_2_url}" | awk '/\/v1/{sub("refs/tags/", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
-          libtorrent_1_2_version="${libtorrent_1_2_github_tag/v}"
+          if [[ -n "${libtorrent_1_2_override}" ]]; then
+              libtorrent_1_2_version="${libtorrent_1_2_override}"
+              libtorrent_1_2_github_tag="v${libtorrent_1_2_override}"
+          else
+              libtorrent_1_2_github_tag="$(git ls-remote -q -t --refs "${libtorrent_1_2_url}" | awk '/\/v1/{sub("refs/tags/", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+              libtorrent_1_2_version="${libtorrent_1_2_github_tag/v}"
+          fi
           printf "%s\n" "libtorrent_1_2=${libtorrent_1_2_version}" >> $GITHUB_ENV
 
           printf "%s\n" "| libtorrent_1_2 | ${libtorrent_1_2_version} | ${libtorrent_1_2_url} |" >> body.md
@@ -162,8 +213,13 @@ jobs:
       - name: libtorrent 2.0
         run: |
           libtorrent_2_0_url="https://github.com/arvidn/libtorrent.git"
-          libtorrent_2_0_github_tag="$(git ls-remote -q -t --refs "${libtorrent_2_0_url}" | awk '/\/v2/{sub("refs/tags/", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
-          libtorrent_2_0_version="${libtorrent_2_0_github_tag/v}"
+          if [[ -n "${libtorrent_2_0_override}" ]]; then
+              libtorrent_2_0_version="${libtorrent_2_0_override}"
+              libtorrent_2_0_github_tag="v${libtorrent_2_0_override}"
+          else
+              libtorrent_2_0_github_tag="$(git ls-remote -q -t --refs "${libtorrent_2_0_url}" | awk '/\/v2/{sub("refs/tags/", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+              libtorrent_2_0_version="${libtorrent_2_0_github_tag/v}"
+          fi
           printf "%s\n" "libtorrent_2_0=${libtorrent_2_0_version}" >> $GITHUB_ENV
 
           printf "%s\n" "| libtorrent_2_0 | ${libtorrent_2_0_version} | ${libtorrent_2_0_url} |" >> body.md
@@ -174,8 +230,13 @@ jobs:
 
       - name: double_conversion
         run: |
-          double_conversion_github_tag="$(git ls-remote -q -t --refs "https://github.com/google/double-conversion.git" | awk '/v/{sub("refs/tags/", "");sub("(.*)(v6|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
-          double_conversion_version="${double_conversion_github_tag/v}"
+          if [[ -n "${double_conversion_override}" ]]; then
+              double_conversion_version="${double_conversion_override}"
+              double_conversion_github_tag="v${double_conversion_override}"
+          else
+              double_conversion_github_tag="$(git ls-remote -q -t --refs "https://github.com/google/double-conversion.git" | awk '/v/{sub("refs/tags/", "");sub("(.*)(v6|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+              double_conversion_version="${double_conversion_github_tag/v}"
+          fi
           double_conversion_url="https://github.com/google/double-conversion/archive/refs/tags/${double_conversion_github_tag}.tar.gz"
           printf "%s\n" "double_conversion=${double_conversion_version}" >> $GITHUB_ENV
 
@@ -187,9 +248,14 @@ jobs:
 
       - name: qt5
         run: |
-          qt5_github_tag="$(git ls-remote -q -t --refs https://github.com/qt/qtbase.git | awk '/v5(.*)-lts-lgpl/{sub("refs/tags/", ""); print $2 }' | sed 's/-lts-lgpl//g' | awk '!/^$/' | sort -rV | head -n1)"
+          if [[ -n "${qt5_override}" ]]; then
+              qt5_version="${qt5_override}"
+              qt5_github_tag="v${qt5_override}"
+          else
+              qt5_github_tag="$(git ls-remote -q -t --refs https://github.com/qt/qtbase.git | awk '/v5(.*)-lts-lgpl/{sub("refs/tags/", ""); print $2 }' | sed 's/-lts-lgpl//g' | awk '!/^$/' | sort -rV | head -n1)"
+              qt5_version="${qt5_github_tag/v}"
+          fi
           qt5_short="$(grep -Eom1 "v5.([0-9]{1,2})" <<< "${qt5_github_tag}")"
-          qt5_version="${qt5_github_tag/v}"
           printf "%s\n" "qt5=${qt5_version}" >> $GITHUB_ENV
 
           qt5base_url="https://master.qt.io/archive/qt/${qt5_short/v/}/${qt5_version}/submodules/qtbase-everywhere-opensource-src-${qt5_version}.tar.xz"
@@ -217,9 +283,14 @@ jobs:
 
       - name: qt6
         run: |
-          qt6_github_tag="$(git ls-remote -q -t --refs "https://github.com/qt/qtbase.git" | awk '/v6/{sub("refs/tags/", ""); sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+          if [[ -n "${qt6_override}" ]]; then
+              qt6_version="${qt6_override}"
+              qt6_github_tag="v${qt6_override}"
+          else
+              qt6_github_tag="$(git ls-remote -q -t --refs "https://github.com/qt/qtbase.git" | awk '/v6/{sub("refs/tags/", ""); sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+              qt6_version="${qt6_github_tag/v}"
+          fi
           qt6_short="$(grep -Eom1 "v6.([0-9]{1,2})" <<< "${qt6_github_tag}")"
-          qt6_version="${qt6_github_tag/v}"
           printf "%s\n" "qt6=${qt6_version}" >> $GITHUB_ENV
 
           qt6base_url="https://master.qt.io/archive/qt/${qt6_short/v/}/${qt6_version}/submodules/qtbase-everywhere-src-${qt6_version}.tar.xz"
@@ -247,8 +318,13 @@ jobs:
 
       - name: qbittorrent
         run: |
-          qbittorrent_github_tag="$(git ls-remote -q -t --refs "https://github.com/qbittorrent/qBittorrent.git" | awk '{sub("refs/tags/", "");sub("(.*)(-[^0-9].*|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
-          qbittorrent_version="${qbittorrent_github_tag/release-}"
+          if [[ -n "${qbittorrent_override}" ]]; then
+              qbittorrent_version="${qbittorrent_override}"
+              qbittorrent_github_tag="release-${qbittorrent_override}"
+          else
+              qbittorrent_github_tag="$(git ls-remote -q -t --refs "https://github.com/qbittorrent/qBittorrent.git" | awk '{sub("refs/tags/", "");sub("(.*)(-[^0-9].*|rc|alpha|beta)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+              qbittorrent_version="${qbittorrent_github_tag/release-}"
+          fi
           qbittorrent_url="https://github.com/qbittorrent/qBittorrent/archive/refs/tags/${qbittorrent_github_tag}.tar.gz"
           printf "%s\n" "qbittorrent=${qbittorrent_version}" >> $GITHUB_ENV
 
