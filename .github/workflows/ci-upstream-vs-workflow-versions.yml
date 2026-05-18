@@ -56,7 +56,7 @@ jobs:
 
           ver() {
             local test_array
-            read -ra test_array < <(printf "%s" "${@//./ }")
+            read -ra test_array < <(printf "%s" "${@//[-.]/ }")
             printf "%d%03d%03d%03d" "${test_array[@]}"
           }
 
