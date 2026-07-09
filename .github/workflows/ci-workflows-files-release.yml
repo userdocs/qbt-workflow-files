@@ -192,41 +192,34 @@ jobs:
               curl -sL "$boost_url" > boost.tar.xz
           fi
 
-      - name: libtorrent 1.2
+      - name: libtorrent
         run: |
-          libtorrent_1_2_url="https://github.com/arvidn/libtorrent.git"
-          if [[ -n "${libtorrent_1_2_override}" ]]; then
-              libtorrent_1_2_version="${libtorrent_1_2_override}"
-              libtorrent_1_2_github_tag="v${libtorrent_1_2_override}"
-          else
-              libtorrent_1_2_github_tag="$(git ls-remote -q -t --refs "${libtorrent_1_2_url}" | awk '/\/v1/{sub("refs/tags/", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
-              libtorrent_1_2_version="${libtorrent_1_2_github_tag/v}"
-          fi
-          printf "%s\n" "libtorrent_1_2=${libtorrent_1_2_version}" >> $GITHUB_ENV
+          for ltv in 1.2 2.0 2.1; do
+              ltv_underscore="${ltv//./_}"
+              libtorrent_url="https://github.com/arvidn/libtorrent.git"
+              override_var="libtorrent_${ltv_underscore}_override"
+              override_val="${!override_var}"
 
-          printf "%s\n" "| libtorrent_1_2 | ${libtorrent_1_2_version} | ${libtorrent_1_2_url} |" >> body.md
-          printf "${libtorrent_1_2_version//[-._]}" >> tag_name.txt
+              if [[ -n "${override_val}" ]]; then
+                  libtorrent_version="${override_val}"
+                  libtorrent_github_tag="v${override_val}"
+              else
+                  libtorrent_github_tag="$(git ls-remote -q -t --refs "${libtorrent_url}" | awk '/\/v'"${ltv//./\\.}"'/{sub("refs/tags/", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
+                  libtorrent_version="${libtorrent_github_tag/v}"
+              fi
 
-          git clone --single-branch --branch "${libtorrent_1_2_github_tag}" --shallow-submodules --recurse-submodules --depth 1 "${libtorrent_1_2_url}" libtorrent_${libtorrent_1_2_version}
-          tar cJf libtorrent.${libtorrent_1_2_version}.tar.xz libtorrent_${libtorrent_1_2_version}
+              if [[ -z "${libtorrent_version}" ]]; then
+                  continue
+              fi
 
-      - name: libtorrent 2.0
-        run: |
-          libtorrent_2_0_url="https://github.com/arvidn/libtorrent.git"
-          if [[ -n "${libtorrent_2_0_override}" ]]; then
-              libtorrent_2_0_version="${libtorrent_2_0_override}"
-              libtorrent_2_0_github_tag="v${libtorrent_2_0_override}"
-          else
-              libtorrent_2_0_github_tag="$(git ls-remote -q -t --refs "${libtorrent_2_0_url}" | awk '/\/v2/{sub("refs/tags/", "");sub("(.*)(-[^0-9].*)(.*)", ""); print $2 }' | awk '!/^$/' | sort -rV | head -n1)"
-              libtorrent_2_0_version="${libtorrent_2_0_github_tag/v}"
-          fi
-          printf "%s\n" "libtorrent_2_0=${libtorrent_2_0_version}" >> $GITHUB_ENV
+              printf "%s\n" "libtorrent_${ltv_underscore}=${libtorrent_version}" >> $GITHUB_ENV
 
-          printf "%s\n" "| libtorrent_2_0 | ${libtorrent_2_0_version} | ${libtorrent_2_0_url} |" >> body.md
-          printf "${libtorrent_2_0_version//[-._]}" >> tag_name.txt
+              printf "%s\n" "| libtorrent_${ltv_underscore} | ${libtorrent_version} | ${libtorrent_url} |" >> body.md
+              printf "${libtorrent_version//[-._]}" >> tag_name.txt
 
-          git clone --single-branch --branch "${libtorrent_2_0_github_tag}" --shallow-submodules --recurse-submodules --depth 1 "${libtorrent_2_0_url}" libtorrent_${libtorrent_2_0_version}
-          tar cJf libtorrent.${libtorrent_2_0_version}.tar.xz libtorrent_${libtorrent_2_0_version}
+              git clone --single-branch --branch "${libtorrent_github_tag}" --shallow-submodules --recurse-submodules --depth 1 "${libtorrent_url}" libtorrent_${libtorrent_version}
+              tar cJf libtorrent.${libtorrent_version}.tar.xz libtorrent_${libtorrent_version}
+          done
 
       - name: double_conversion
         run: |
@@ -348,6 +341,7 @@ jobs:
           current_workflow_version[boost]="${boost}"
           current_workflow_version[libtorrent_1_2]="${libtorrent_1_2}"
           current_workflow_version[libtorrent_2_0]="${libtorrent_2_0}"
+          current_workflow_version[libtorrent_2_1]="${libtorrent_2_1}"
           current_workflow_version[double_conversion]="${double_conversion}"
           current_workflow_version[qt5]="${qt5}"
           current_workflow_version[qt6]="${qt6}"
@@ -366,6 +360,7 @@ jobs:
             "boost": "${boost}",
             "libtorrent_1_2": "${libtorrent_1_2}",
             "libtorrent_2_0": "${libtorrent_2_0}",
+            "libtorrent_2_1": "${libtorrent_2_1}",
             "double_conversion": "${double_conversion}",
             "qt5": "${qt5}",
             "qt6": "${qt6}",
@@ -386,6 +381,7 @@ jobs:
           boost: ${boost}
           libtorrent_1_2: ${libtorrent_1_2}
           libtorrent_2_0: ${libtorrent_2_0}
+          libtorrent_2_1: ${libtorrent_2_1}
           double_conversion: ${double_conversion}
           qt5: ${qt5}
           qt6: ${qt6}
