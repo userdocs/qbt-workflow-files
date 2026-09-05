@@ -21,7 +21,7 @@ jobs:
       - name: Run the sh-checker
         uses: luizm/action-sh-checker@883217215b11c1fabbf00eb1a9a041f62d74c744 # v0.10.0
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
           SHELLCHECK_OPTS: -e SC2034,SC1091 # It is possible to exclude some shellcheck warnings.
           SHFMT_OPTS: -ci -sr -i 0 # It is possible to pass arguments to shftm
         with:
@@ -53,12 +53,18 @@ jobs:
       - name: editorconfig-checker
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          runner_arch: ${{ runner.arch }}
         run: |
-          curl -Lo- "https://github.com/editorconfig-checker/editorconfig-checker/releases/latest/download/editorconfig-checker-linux-amd64.tar.gz" | tar xzf - --strip-components=1
+          case "${runner_arch}" in
+            X86 | X64)
+              arch="amd64"
+              ;;
+            ARM | ARM64)
+              arch="arm64"
+              ;;
+          esac
 
-          printf '%b\n' "\`\`\`" >> $GITHUB_STEP_SUMMARY
-          ./ec-linux-amd64 --exclude '^(docs/.*|patches/.*)$' | sed "s,\x1B\[[0-9;]*[a-zA-Z],,g" >> $GITHUB_STEP_SUMMARY
+          curl -Lo- "https://github.com/editorconfig-checker/editorconfig-checker/releases/latest/download/editorconfig-checker-linux-${arch}.tar.gz" | tar xzf - --strip-components=1
+          ./ec-linux-${arch} --exclude '^(docs/.*|patches/.*)$' | sed 's/\x1b\[[0-9;]*m//g' | { printf '%b\n' '```bash' >> "$GITHUB_STEP_SUMMARY"; tee -a "$GITHUB_STEP_SUMMARY"; printf '%b\n' '```' >> "$GITHUB_STEP_SUMMARY"; }
           exit_code=("${PIPESTATUS[0]}")
-          printf '%b' "\`\`\`" >> $GITHUB_STEP_SUMMARY
-
           # exit "${exit_code}"
